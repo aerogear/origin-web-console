@@ -631,6 +631,28 @@ angular
       // content (e.g. using :before pseudo-elements).
       $('body').addClass('ios');
     }
+  })
+  .run(function ($rootScope, APIService) {
+    $rootScope.AEROGEAR_MOBILE_ENABLED = !!APIService.apiInfo({ resource: "mobileclients", group: "mobile.k8s.io" });
+    if ($rootScope.AEROGEAR_MOBILE_ENABLED) {
+      // Add 'Mobile' category and sub-categories to the Service Catalog UI
+      window.OPENSHIFT_CONSTANTS.SERVICE_CATALOG_CATEGORIES.splice(
+        OPENSHIFT_CONSTANTS.SERVICE_CATALOG_CATEGORIES.length,
+        0,
+        {
+          id: 'mobile',
+          label: 'Mobile',
+          subCategories: [
+            { id: 'apps', label: 'Apps', tags: ['mobile'], icon: 'fa fa-mobile' },
+            {
+              id: 'services',
+              label: 'Services',
+              tags: ['mobile-service'],
+              icon: 'fa fa-database'
+            }]
+        });
+    }
+    Logger.info("AEROGEAR_MOBILE_ENABLED: " + $rootScope.AEROGEAR_MOBILE_ENABLED);
   });
 
 hawtioPluginLoader.addModule('openshiftConsole');

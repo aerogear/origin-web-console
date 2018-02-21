@@ -514,4 +514,22 @@ angular.module('openshiftConsole')
     return function(feature) {
       return _.get(Constants, ['ENABLE_TECH_PREVIEW_FEATURE', feature], false);
     };
-  });
+  })
+  .filter('mobileClientIconClass', function() {
+    return function(mobileClientResource) {
+      var clientIcon = _.get(mobileClientResource, 'metadata.labels.icon');
+      var clientType = _.get(mobileClientResource, 'spec.clientType');
+      switch (clientType) {
+        case 'android':
+        case 'iOS':
+          clientIcon = 'fa ' + clientIcon;
+          break;
+        case 'cordova':
+          clientIcon = 'font-icon ' + clientIcon;
+          break;
+        default:
+          clientIcon = 'fa fa-clone';
+        }
+    return clientIcon;
+  };
+});
