@@ -6,7 +6,7 @@
       <div class="list-pf-content">
         <div class="list-pf-name">
           <h3>
-            <span class="fa-3x {{mobileClient | mobileClientIconClass}}"></span>
+            <span class="fa-2x {{row.apiObject.metadata.annotations.icon}}"></span>
             <a ng-href="{{row.apiObject | navigateResourceURL}}" ng-bind-html="row.apiObject.spec.name"></a>
             <div ng-bind-html="row.apiObject.spec.clientType | highlightKeywords : row.state.filterKeyword" class="list-row-longname"></div>
 

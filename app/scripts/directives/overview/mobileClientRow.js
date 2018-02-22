@@ -33,7 +33,7 @@
     row.bundleDisplay = "bundle id: " + row.apiObject.spec.appIdentifier;
     switch (row.apiObject.spec.clientType) {
       case 'android':
-        row.installType = 'maven';
+        row.installType = 'gradle';
         row.bundleDisplay = "package name: " + row.apiObject.spec.appIdentifier;
         break;
       case 'iOS':
