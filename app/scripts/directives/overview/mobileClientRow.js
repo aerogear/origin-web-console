@@ -6,13 +6,12 @@
       '$scope',
       '$filter',
       '$routeParams',
-      'ProjectsService',
-      'DataService',
       'APIService',
-      'MobileClientsService',
+      'AuthorizationService',
+      'DataService',
       'ListRowUtils',
       'Navigate',
-      'AuthorizationService',
+      'ProjectsService',
       MobileAppRow,
     ],
     controllerAs: 'row',
@@ -24,7 +23,7 @@
     templateUrl: 'views/overview/_mobile-client-row.html'
   });
 
-  function MobileAppRow($scope, $filter, $routeParams, ProjectsService, DataService, APIService, MobileClientsService, ListRowUtils, Navigate, AuthorizationService) {
+  function MobileAppRow($scope, $filter, $routeParams, APIService, AuthorizationService, DataService, ListRowUtils, Navigate, ProjectsService) {
     var row = this;
     row.installType = '';
 
@@ -48,9 +47,6 @@
       version: "v1alpha1",
       resource: "mobileclients"
     };
-    row.remove = function () {
-      MobileClientsService.deleteClient(row.apiObject);
-    };
     row.actionsDropdownVisible = function () {
       // no actions on those marked for deletion
       if (_.get(row.apiObject, 'metadata.deletionTimestamp')) {
@@ -60,13 +56,9 @@
       // We can delete mobileclients
       return AuthorizationService.canI(row.mobileclientVersion, 'delete');
     };
-
-    $scope.browseCatalog = function () {
-      Navigate.toProjectCatalog($scope.projectName);
+    row.projectName = $routeParams.project;
+    row.browseCatalog = function () {
+      Navigate.toProjectCatalog(row.projectName);
     };
-    $scope.projectName = $routeParams.project;
-    $scope.renderOptions = $scope.renderOptions || {};
-    $scope.renderOptions.hideFilterWidget = true;
-    $scope.app = row.apiObject;
   }
 })();
