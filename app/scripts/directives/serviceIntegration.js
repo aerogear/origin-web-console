@@ -83,7 +83,7 @@
           });
         });
       });
-      
+
       //setup watch on servincebindings, watch for bindings consumed by this service
       watches.push(DataService.watch(bindingPreferredVersion, context, function(bindingData) {
         var data = bindingData.by("metadata.name");

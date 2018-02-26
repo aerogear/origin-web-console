@@ -171,8 +171,9 @@
             service-plan="row.servicePlan">
           </service-instance-bindings>
         </div>
-        <div ng-if="row.integrations | size">
-          <service-instance-integrations ng-if="row.instanceStatus === 'ready'"
+        <div ng-if="(row.integrations | size) && (row.apiObject | isServiceInstanceReady)">
+          <div class="component-label section-label">Integrations</div>
+          <service-instance-integrations
             is-overview="true"
             integrations="row.integrations"
             consumer-service="row.apiObject">
