@@ -3739,6 +3739,11 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</catalog-parameters>\n" +
     "</form>\n" +
     "</div>\n" +
+    "<div ng-if=\"(serviceIntegrations | size) && (serviceInstance | isServiceInstanceReady)\">\n" +
+    "<h3>Service Integrations</h3>\n" +
+    "<service-instance-integrations integrations=\"serviceIntegrations\" consumer-service=\"serviceInstance\">\n" +
+    "</service-instance-integrations>\n" +
+    "</div>\n" +
     "</div>\n" +
     "<div class=\"col-lg-6\">\n" +
     "<div class=\"hidden-xs hidden-sm hidden-md\">\n" +
@@ -9391,7 +9396,6 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
 
   $templateCache.put('views/directives/service-instance-integrations.html',
     "<div ng-if=\"($ctrl.integrationsData | size)\" class=\"row service-integrations\">\n" +
-    "<div class=\"component-label section-label\">Integrations</div>\n" +
     "<service-integration ng-repeat=\"integration in $ctrl.integrationsData\" integration=\"integration\" consumer-service=\"$ctrl.consumerService\">\n" +
     "</service-integration>\n" +
     "</div>"
@@ -12993,8 +12997,9 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<service-instance-bindings is-overview=\"true\" project=\"row.state.project\" bindings=\"row.bindings\" service-instance=\"row.apiObject\" service-class=\"row.serviceClass\" service-plan=\"row.servicePlan\">\n" +
     "</service-instance-bindings>\n" +
     "</div>\n" +
-    "<div ng-if=\"row.integrations | size\">\n" +
-    "<service-instance-integrations ng-if=\"row.instanceStatus === 'ready'\" is-overview=\"true\" integrations=\"row.integrations\" consumer-service=\"row.apiObject\">\n" +
+    "<div ng-if=\"(row.integrations | size) && (row.apiObject | isServiceInstanceReady)\">\n" +
+    "<div class=\"component-label section-label\">Integrations</div>\n" +
+    "<service-instance-integrations is-overview=\"true\" integrations=\"row.integrations\" consumer-service=\"row.apiObject\">\n" +
     "</service-instance-integrations>\n" +
     "</div>\n" +
     "</div>\n" +

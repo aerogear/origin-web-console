@@ -6526,12 +6526,12 @@ e.serviceInstances = t.select(e.unfilteredServiceInstances), r();
 i.unwatchAll(m);
 });
 }));
-} ]), angular.module("openshiftConsole").controller("ServiceInstanceController", [ "$scope", "$filter", "$routeParams", "APIService", "BindingService", "AuthorizationService", "Catalog", "DataService", "Logger", "ProjectsService", "SecretsService", "ServiceInstancesService", function(e, t, n, r, a, o, i, s, c, l, u, d) {
-e.alerts = {}, e.projectName = n.project, e.serviceInstance = null, e.serviceClass = null, e.serviceClasses = null, e.editDialogShown = !1, e.breadcrumbs = [ {
+} ]), angular.module("openshiftConsole").controller("ServiceInstanceController", [ "$scope", "$filter", "$rootScope", "$routeParams", "APIService", "BindingService", "AuthorizationService", "Catalog", "DataService", "Logger", "ProjectsService", "SecretsService", "ServiceInstancesService", function(e, t, n, r, a, o, i, s, c, l, u, d, m) {
+e.alerts = {}, e.projectName = r.project, e.serviceInstance = null, e.serviceClass = null, e.serviceClasses = null, e.editDialogShown = !1, e.isMobileService = t("isMobileService"), e.isMobileEnabled = n.AEROGEAR_MOBILE_ENABLED, e.breadcrumbs = [ {
 title: "Provisioned Services",
-link: "project/" + n.project + "/browse/service-instances"
+link: "project/" + r.project + "/browse/service-instances"
 } ], e.deprovision = function() {
-e.serviceInstance.metadata.deletionTimestamp || d.deprovision(e.serviceInstance, e.bindings);
+e.serviceInstance.metadata.deletionTimestamp || m.deprovision(e.serviceInstance, e.bindings);
 }, e.showEditDialog = function() {
 e.editDialogShown = !0;
 }, e.showParameterValues = !1, e.toggleShowParameterValues = function() {
@@ -6539,15 +6539,15 @@ e.showParameterValues = !e.showParameterValues;
 }, e.closeEditDialog = function() {
 e.editDialogShown = !1;
 };
-var m = r.getPreferredVersion("servicebindings");
-e.eventsVersion = r.getPreferredVersion("events"), e.serviceInstancesVersion = r.getPreferredVersion("serviceinstances");
-var p, f, g = [], v = [], h = t("serviceInstanceDisplayName"), y = t("isServiceInstanceFailed"), b = function() {
+var p = a.getPreferredVersion("servicebindings");
+e.eventsVersion = a.getPreferredVersion("events"), e.serviceInstancesVersion = a.getPreferredVersion("serviceinstances");
+var f, g, v = [], h = [], y = t("serviceInstanceDisplayName"), b = t("isServiceInstanceFailed"), S = function() {
 e.breadcrumbs.push({
 title: e.displayName
 });
-}, S = function() {
+}, C = function() {
 if (e.serviceInstance && e.parameterSchema) {
-s.unwatchAll(v), v = [], e.allowParametersReveal = o.canI("secrets", "get", e.projectName), e.parameterData = {}, e.opaqueParameterKeys = [];
+c.unwatchAll(h), h = [], e.allowParametersReveal = i.canI("secrets", "get", e.projectName), e.parameterData = {}, e.opaqueParameterKeys = [];
 var t = e.allowParametersReveal ? "" : "*****";
 _.each(_.keys(_.get(e.parameterSchema, "properties")), function(n) {
 e.parameterData[n] = t;
@@ -6556,54 +6556,59 @@ var n = _.get(e.serviceInstance, "status.externalProperties.parameters", {});
 _.each(_.keys(n), function(t) {
 "<redacted>" === n[t] ? e.parameterData[t] = "*****" : (e.parameterData[t] = n[t], e.opaqueParameterKeys.push(t));
 }), e.allowParametersReveal && _.each(_.get(e.serviceInstance, "spec.parametersFrom"), function(t) {
-v.push(s.watchObject("secrets", _.get(t, "secretKeyRef.name"), e.projectContext, function(n) {
+h.push(c.watchObject("secrets", _.get(t, "secretKeyRef.name"), e.projectContext, function(n) {
 try {
-var r = JSON.parse(u.decodeSecretData(n.data)[t.secretKeyRef.key]);
+var r = JSON.parse(d.decodeSecretData(n.data)[t.secretKeyRef.key]);
 _.extend(e.parameterData, r);
 } catch (e) {
-c.warn("Unable to load parameters from secret " + _.get(t, "secretKeyRef.name"), e);
+l.warn("Unable to load parameters from secret " + _.get(t, "secretKeyRef.name"), e);
 }
 }));
 });
 }
-}, C = function() {
+}, w = function() {
 if (e.plan && e.serviceClass && e.serviceInstance) {
 var t = _.get(e.plan, "spec.instanceUpdateParameterSchema"), n = _.size(_.get(t, "properties")) > 0 || _.get(e.serviceClass, "spec.planUpdatable") && _.size(e.servicePlans) > 1;
-e.editAvailable = n && !y(e.serviceInstance) && !_.get(e.serviceInstance, "status.asyncOpInProgress") && !_.get(e.serviceInstance, "metadata.deletionTimestamp");
+e.editAvailable = n && !b(e.serviceInstance) && !_.get(e.serviceInstance, "status.asyncOpInProgress") && !_.get(e.serviceInstance, "metadata.deletionTimestamp");
 }
-}, w = function() {
-e.parameterFormDefinition = angular.copy(_.get(e.plan, "spec.externalMetadata.schemas.service_instance.update.openshift_form_definition")), e.parameterSchema = _.get(e.plan, "spec.instanceCreateParameterSchema"), S();
 }, P = function() {
+e.parameterFormDefinition = angular.copy(_.get(e.plan, "spec.externalMetadata.schemas.service_instance.update.openshift_form_definition")), e.parameterSchema = _.get(e.plan, "spec.instanceCreateParameterSchema"), C();
+}, j = function() {
 var t = _.get(e.serviceInstance, "spec.clusterServicePlanRef.name");
 e.plan = _.find(e.servicePlans, {
 metadata: {
 name: t
 }
-}), w(), C();
-}, j = function() {
-e.serviceClass && !f && (e.servicePlans ? P() : f = i.getServicePlansForServiceClass(e.serviceClass).then(function(t) {
+}), P(), w();
+}, k = function() {
+e.serviceClass && !g && (e.servicePlans ? j() : g = s.getServicePlansForServiceClass(e.serviceClass).then(function(t) {
 var n = _.get(e.serviceInstance, "spec.clusterServicePlanRef.name");
 e.servicePlans = _.reject(t.by("metadata.name"), function(e) {
 return _.get(e, "status.removedFromBrokerCatalog") && e.metadata.name !== n;
-}), P(), f = null;
+}), j(), g = null;
 }));
-}, k = function() {
-e.serviceInstance && !p && (e.serviceClass ? j() : p = d.fetchServiceClassForInstance(e.serviceInstance).then(function(t) {
-e.serviceClass = t, e.displayName = h(e.serviceInstance, e.serviceClass), b(), p = null, j();
+}, I = function() {
+e.serviceInstance && !f && (e.serviceClass ? k() : f = m.fetchServiceClassForInstance(e.serviceInstance).then(function(t) {
+e.serviceClass = t, e.displayName = y(e.serviceInstance, e.serviceClass), S(), f = null, k();
 }));
-}, I = function(t, n) {
+}, R = function() {
+e.isMobileEnabled && e.isMobileService(e.serviceInstance) && m.fetchServiceClassForInstance(e.serviceInstance).then(function(t) {
+var n = _.get(t, "spec.externalMetadata.integrations", []);
+e.serviceIntegrations = n.split(",");
+});
+}, E = function(t, n) {
 e.loaded = !0, e.serviceInstance = t, "DELETED" === n && (e.alerts.deleted = {
 type: "warning",
 message: "This provisioned service has been deleted."
-}), k(), S(), C();
+}), I(), C(), w(), R();
 };
-l.get(n.project).then(_.spread(function(r, o) {
-e.project = r, e.projectContext = o, s.get(e.serviceInstancesVersion, n.instance, o, {
+u.get(r.project).then(_.spread(function(n, a) {
+e.project = n, e.projectContext = a, c.get(e.serviceInstancesVersion, r.instance, a, {
 errorNotification: !1
 }).then(function(t) {
-I(t), g.push(s.watchObject(e.serviceInstancesVersion, n.instance, o, I)), g.push(s.watch(m, o, function(n) {
+E(t), v.push(c.watchObject(e.serviceInstancesVersion, r.instance, a, E)), v.push(c.watch(p, a, function(n) {
 var r = n.by("metadata.name");
-e.bindings = a.getBindingsForResource(r, t);
+e.bindings = o.getBindingsForResource(r, t);
 }));
 }, function(n) {
 e.loaded = !0, e.alerts.load = {
@@ -6619,7 +6624,7 @@ message: "The service details could not be loaded.",
 details: t("getErrorDetails")(n)
 };
 })), e.$on("$destroy", function() {
-s.unwatchAll(g), s.unwatchAll(v);
+c.unwatchAll(v), c.unwatchAll(h);
 });
 } ]), angular.module("openshiftConsole").controller("SecretsController", [ "$routeParams", "$scope", "APIService", "DataService", "LabelFilter", "ProjectsService", function(e, t, n, r, a, o) {
 t.projectName = e.project, t.labelSuggestions = {}, t.clearFilter = function() {
