@@ -152,6 +152,26 @@
                 expandable="true"
                 linkify="true">
               </truncate-long-text></p>
+          </div>
+        </div>
+        <div ng-if="row.isMobileService && row.instanceStatus === 'ready'" class="row mobile-clients">
+          <div class="col-sm-6">
+            <div ng-if="row.filteredClients.length" class="client-title">Mobile Clients</div>
+            <div ng-repeat="mobileClient in row.filteredClients" class="col-sm-12 col-md-6 mobile-client">
+              <span class="fa-2x {{mobileClient.metadata.annotations.icon}} client-icon"></span>
+              <div class="client-details">
+                <a ng-href="{{mobileClient | navigateResourceURL}}">{{mobileClient.spec.name}}</a>
+                <div class="client-type">{{mobileClient.spec.appIdentifier}}</div>
+              </div>
+              <div class="exclude" ng-click="row.excludeClient(mobileClient)">
+                <span ng-click="row.excludeClient(mobileClient)" class="pficon-error-circle-o"></span>
+                <span>Exclude Client</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-12">
             <div ng-if="row.serviceClass.spec.externalMetadata.documentationUrl || row.serviceClass.spec.externalMetadata.supportUrl">
               <a ng-if="row.serviceClass.spec.externalMetadata.documentationUrl" ng-href="{{row.serviceClass.spec.externalMetadata.documentationUrl}}" target="_blank" class="learn-more-link">View Documentation <i class="fa fa-external-link" aria-hidden="true"></i></a>
               <a ng-if="row.serviceClass.spec.externalMetadata.supportUrl" ng-href="{{row.serviceClass.spec.externalMetadata.supportUrl}}" target="_blank" class="learn-more-link">Get Support <i class="fa fa-external-link" aria-hidden="true"></i></a>
