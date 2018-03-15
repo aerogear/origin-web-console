@@ -1,0 +1,39 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <div class="panel-title overlay-title pull-left">Select Mobile Service to add to this Client</div>
+    <button class="panel-title btn pull-right" type="button" ng-click="$ctrl.onClose()">
+      <span aria-hidden="true" class="pficon pficon-close"></span>
+    </button>
+    <div class="clearfix"></div>
+  </div>
+  <div class="panel-body">
+    <div class="list-pf">
+      <div ng-repeat="service in $ctrl.filteredServices">
+        <div class="list-pf-item">
+          <div class="list-pf-container" ng-click="$ctrl.addService(service)">
+            <div class="order-service-details ng-scope">
+              <div class="order-service-details-top">
+                <mobile-client-service
+                  service="service"
+                  client="$ctrl.client"
+                  project="$ctrl.project">
+                </mobile-client-service>
+
+                <!-- <div class="service-title-area">
+                  <div class="service-title ng-binding">
+                    {{ service.metadata.labels.serviceName }}
+                  </div>
+                  <div class="order-service-tags ng-scope">
+                    <span class="tag ng-binding ng-scope">
+                      {{ service.metadata.name }}
+                    </span>
+                  </div>
+                </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

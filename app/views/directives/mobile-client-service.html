@@ -1,0 +1,16 @@
+<div class="mobile-service-group pull-left">
+  <div class="mobile-service">
+    <img class="service-icon pull-left" ng-src="{{ $ctrl.serviceData.imageUrl }}" />
+    <div class="description pull-left">
+      <h4 class="service-name">{{ $ctrl.serviceData.name }}</h4>
+      <div class="service-id">ID: {{ $ctrl.service.metadata.name }}</div>
+    </div>
+    <div class="clear"></div>
+  </div>
+  <div class="exclude" ng-click="$ctrl.excludeService($ctrl.client)" ng-if="$ctrl.exclude">
+    <span ng-click="$ctrl.excludeService($ctrl.client)" class="pficon-error-circle-o"></span>
+    <span>Exclude Service</span>
+  </div>
+
+  <div class="clear"></div>
+</div>
