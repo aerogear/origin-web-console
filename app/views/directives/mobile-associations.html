@@ -1,0 +1,30 @@
+<div>
+  <button class="btn btn-default pull-right" 
+    ng-disabled="$ctrl.canAddResource()" 
+    ng-click="$ctrl.showOverlayPanel('addMobileResource', { target: $ctrl.resource })">Add
+  </button>
+
+  <h3>{{$ctrl.title}}</h3>
+
+  <div ng-repeat="resource in $ctrl.filteredResources">
+    <mobile-resource 
+      exclude-resource="$ctrl.exclude" 
+      resource="resource" 
+      show-exclude="true">
+    </mobile-resource>
+  </div>
+
+  <div class="clear"></div>
+</div>
+
+<overlay-panel show-panel="$ctrl.overlay.panelVisible" handle-close="$ctrl.closeOverlayPanel">
+  <div ng-if="$ctrl.overlay.panelName === 'addMobileResource'">
+    <add-mobile-resource 
+      add="$ctrl.add" 
+      filter-excluded="$ctrl.filterExcluded" 
+      resource="$ctrl.resource" 
+      resources="$ctrl.resources"
+      on-close="$ctrl.closeOverlayPanel" 
+      project="$ctrl.project"></add-mobile-resource>
+  </div>
+</overlay-panel>

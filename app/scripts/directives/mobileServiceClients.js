@@ -21,40 +21,58 @@
                        MobileClientsService,
                        NotificationsService) {
     var ctrl = this;
+    var context = { namespace: _.get(ctrl, 'project.metadata.name') };
     var getErrorDetails = $filter('getErrorDetails');
-
-    ctrl.$doCheck = function() {
-      ctrl.filteredClients = MobileClientsService.filterNotExcluded(ctrl.serviceInstance, ctrl.mobileClients);
-    };
+    ctrl.title = "Mobile Clients";
 
     ctrl.excludeClient = function(mobileClient) {
-      MobileClientsService.excludeClient(mobileClient, ctrl.serviceInstance, {namespace: _.get(ctrl, 'project.metadata.name')})
+      var clientName = _.get(mobileClient, 'spec.name');
+      var serviceName = _.get(ctrl.serviceInstance, 'metadata.name');
+      
+      MobileClientsService.excludeClient(mobileClient, ctrl.serviceInstance, context)
       .then(function() {
           NotificationsService.addNotification({
             type: 'success',
-            message: 'Mobile client ' + _.get(mobileClient, 'spec.name') + ' excluded from ' + _.get(ctrl.serviceInstance, 'metadata.name')
+            message: 'Mobile client ' + clientName + ' excluded from ' + serviceName + '.'
           });
         }).catch(function(error) {
           NotificationsService.addNotification({
             type: 'error',
-            message: 'Failed to exclude mobile client ' + _.get(mobileClient, 'spec.name'),
+            message: 'Failed to exclude mobile client ' + clientName + ' from service ' + serviceName + '.',
             details: getErrorDetails(error)
           });
         });
     };
 
-    ctrl.closeOverlayPanel = function() {
-      _.set(ctrl, 'overlay.panelVisible', false);
-    };
+    ctrl.addClient = function(mobileClient) {
+      var clientName = _.get(mobileClient, 'spec.name');
+      var serviceName = _.get(ctrl.serviceInstance, 'metadata.name');
 
-    ctrl.showOverlayPanel = function(panelName, state) {
-      _.set(ctrl, 'overlay.panelVisible', true);
-      _.set(ctrl, 'overlay.panelName', panelName);
-      _.set(ctrl, 'overlay.state', state);
-    };
+      MobileClientsService.removeFromExcluded(mobileClient, ctrl.serviceInstance, context)
+      .then(function() {
+          NotificationsService.addNotification({
+            type: 'success',
+            message: 'Mobile client ' + clientName + ' added to service ' + serviceName + '.'
+          });
+        }).catch(function(error) {
+          NotificationsService.addNotification({
+            type: 'error',
+            message: 'Failed to add mobile client ' + clientName + ' to service ' + serviceName + '.',
+            details: getErrorDetails(error)
+          });
+        });
+    }
 
-    ctrl.canAddMobileClient = function() {
-      return !MobileClientsService.filterExcluded(ctrl.serviceInstance, ctrl.mobileClients).length;
+    ctrl.filterClients = function(serviceInstance, mobileClients) {
+      return MobileClientsService.filterNotExcluded(serviceInstance, mobileClients);
+    }
+
+    ctrl.filterExcluded = function(serviceInstance, mobileClients) {
+      return MobileClientsService.filterExcluded(serviceInstance, mobileClients);
+    }
+
+    ctrl.canAddClient = function(serviceInstance, mobileClients) {
+      return _.isEmpty(MobileClientsService.filterExcluded(serviceInstance, mobileClients));
     };
   }
 })();

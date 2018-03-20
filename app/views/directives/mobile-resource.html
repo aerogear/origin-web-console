@@ -1,0 +1,17 @@
+<div class="mobile-resource-group pull-left">
+  <div class="mobile-resource">
+    <img ng-if="$ctrl.resource.resourceData.imageUrl" class="resource-image pull-left" ng-src="{{ $ctrl.resource.resourceData.imageUrl }}" />
+    <span ng-if="$ctrl.resource.resourceData.icon" class="resource-icon fa-3x {{ $ctrl.resource.resourceData.icon }} pull-left"></span>
+
+    <div class="description pull-left">
+      <h4 class="resource-name">{{ $ctrl.resource.resourceData.name }}</h4>
+      <div class="resource-id">ID: {{ $ctrl.resource.resourceData.id }}</div>
+    </div>
+    <div class="clear"></div>
+
+    <div class="exclude" ng-click="$ctrl.excludeResource($ctrl.resource)" ng-if="$ctrl.showExclude">
+      <span class="pficon-error-circle-o"></span>
+      <span>Exclude</span>
+    </div>
+  </div>
+</div>

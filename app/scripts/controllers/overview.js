@@ -1438,6 +1438,12 @@ function OverviewController($scope,
     if ($scope.AEROGEAR_MOBILE_ENABLED) {
       watches.push(MobileClientsService.watch(context, function(clients) {
         overview.mobileClients = clients.by("metadata.name");
+        _.each(overview.mobileClients , function (mobileClient) {
+          mobileClient.resourceData = {};
+          mobileClient.resourceData.icon = _.get(mobileClient, 'metadata.annotations.icon');
+          mobileClient.resourceData.name = _.get(mobileClient, 'spec.name');
+          mobileClient.resourceData.id = _.get(mobileClient, 'spec.appIdentifier');
+        });
         updateFilter();
         Logger.log("mobileclients (subscribe)", clients);
       }, {poll: limitWatches, pollInterval: DEFAULT_POLL_INTERVAL}));
