@@ -3036,6 +3036,16 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</uib-tab>\n" +
     "<uib-tab heading=\"Environment\" active=\"selectedTab.environment\">\n" +
     "<uib-tab-heading>Environment</uib-tab-heading>\n" +
+    "<p ng-if=\"dcName\">\n" +
+    "<span class=\"pficon pficon-info\" aria-hidden=\"true\"></span>\n" +
+    "Environment variables can be edited on deployment config\n" +
+    "<a ng-href=\"{{dcName | navigateResourceURL : 'DeploymentConfig' : pod.metadata.namespace}}?tab=environment\">{{dcName}}</a>.\n" +
+    "</p>\n" +
+    "<p ng-if=\"!dcName && controllerRef\">\n" +
+    "<span class=\"pficon pficon-info\" aria-hidden=\"true\"></span>\n" +
+    "Environment variables were set by {{controllerRef.kind | humanizeKind}}\n" +
+    "<a ng-href=\"{{controllerRef.name | navigateResourceURL : controllerRef.kind : pod.metadata.namespace}}?tab=environment\">{{controllerRef.name}}</a>.\n" +
+    "</p>\n" +
     "<edit-environment-variables api-object=\"pod\" ng-readonly=\"true\"></edit-environment-variables>\n" +
     "</uib-tab>\n" +
     "<uib-tab ng-if=\"metricsAvailable\" heading=\"Metrics\" active=\"selectedTab.metrics\">\n" +
@@ -4538,7 +4548,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</div>\n" +
     "<form name=\"createConfigMapForm\" class=\"mar-top-xl\">\n" +
     "<fieldset ng-disabled=\"disableInputs\">\n" +
-    "<edit-config-map model=\"configMap\" show-name-input=\"true\"></edit-config-map>\n" +
+    "<edit-config-map-or-secret model=\"configMap\" type=\"config-map\" show-name-input=\"true\"></edit-config-map-or-secret>\n" +
     "<div class=\"button-group gutter-top gutter-bottom\">\n" +
     "<button type=\"submit\" class=\"btn btn-primary btn-lg\" ng-click=\"createConfigMap()\" ng-disabled=\"createConfigMapForm.$invalid || disableInputs\" value=\"\">Create</button>\n" +
     "<a class=\"btn btn-default btn-lg\" href=\"\" ng-click=\"cancel()\" role=\"button\">Cancel</a>\n" +
@@ -5687,6 +5697,35 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
   );
 
 
+  $templateCache.put('views/directives/_service-integration.html',
+    "<div class=\"service-integration pull-left\" ng-if=\"$ctrl.integration\">\n" +
+    "<div ng-class=\"{active: $ctrl.getState() == 'active',\n" +
+    "                  inactive: $ctrl.getState() == 'no-binding',\n" +
+    "                  unknown: $ctrl.getState() == 'no-service'}\" class=\"integration\">\n" +
+    "<img class=\"image-icon pull-left\" ng-src=\"{{ $ctrl.integration.spec.externalMetadata.imageUrl }}\">\n" +
+    "<div class=\"description pull-left\" ng-switch=\"$ctrl.getState()\">\n" +
+    "<h4 class=\"integration-name\">{{$ctrl.integration.spec.externalMetadata.displayName || \"Service Integration\"}}</h4>\n" +
+    "<span class=\"integration-error\" ng-if=\"$ctrl.getState() == 'pending' || $ctrl.getState() == 'service_pending'\"><span class=\"spinner spinner-xs spinner-inline\" aria-hidden=\"true\"></span></span>\n" +
+    "<delete-link class=\"inline-delete\" ng-if=\"$ctrl.getState() == 'active'\" kind=\"servicebinding\" group=\"servicecatalog.k8s.io\" button-only=\"true\" stay-on-current-page=\"true\" resource-name=\"{{$ctrl.binding.metadata.name}}\" project-name=\"{{$ctrl.binding.metadata.namespace}}\" success=\"$ctrl.deletePodPreset\">\n" +
+    "</delete-link>\n" +
+    "<div class=\"id\" ng-switch-when=\"pending\">Status: Pending</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"active\">ID: {{ $ctrl.binding.metadata.name }}</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"no-binding\">No {{$ctrl.integration.spec.externalMetadata.displayName}} integration found.\n" +
+    "<span ng-click=\"$ctrl.openIntegrationPanel()\" class=\"integrate-link\">Integrate {{$ctrl.integration.spec.externalMetadata.displayName}}</span>\n" +
+    "</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"service_pending\">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} provision to complete.</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"no-service\">\n" +
+    "<span ng-click=\"$ctrl.provision()\">Provision {{$ctrl.integration.spec.externalMetadata.displayName}} to enable integration.</span>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "<overlay-panel show-panel=\"$ctrl.integrationPanelVisible\" handle-close=\"$ctrl.closeIntegrationPanel\">\n" +
+    "<bind-service target=\"$ctrl.serviceInstance\" project=\"$ctrl.project\" on-close=\"$ctrl.closeIntegrationPanel\" on-finish=\"$ctrl.onBind\" parameter-data=\"$ctrl.parameterData\"></bind-service>\n" +
+    "</overlay-panel>"
+  );
+
+
   $templateCache.put('views/directives/_status-icon.html',
     "<span ng-switch=\"status\" class=\"hide-ng-leave status-icon\">\n" +
     "<span ng-switch-when=\"Cancelled\" class=\"fa fa-ban text-muted\" aria-hidden=\"true\"></span>\n" +
@@ -6143,7 +6182,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
-    "<div ng-if=\"newSecret.type != 'webhook'\">\n" +
+    "<div ng-if=\"newSecret.type === 'source' || newSecret.type === 'image'\">\n" +
     "<div class=\"form-group\">\n" +
     "<label for=\"authentification-type\">Authentication Type</label>\n" +
     "<ui-select required input-id=\"authentification-type\" ng-model=\"newSecret.authType\" search-enabled=\"false\">\n" +
@@ -6326,6 +6365,10 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
+    "</div>\n" +
+    "<div ng-if=\"newSecret.type === 'generic'\">\n" +
+    "<edit-config-map-or-secret model=\"newSecret.data.genericKeyValues\" type=\"secret\" read-as-binary-string=\"true\">\n" +
+    "</edit-config-map-or-secret>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div class=\"buttons gutter-top-bottom\">\n" +
@@ -6653,79 +6696,82 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
   );
 
 
-  $templateCache.put('views/directives/edit-config-map.html',
-    "<ng-form name=\"configMapForm\">\n" +
+  $templateCache.put('views/directives/edit-config-map-or-secret.html',
+    "<ng-form name=\"keyValueMapForm\">\n" +
     "<fieldset>\n" +
     "\n" +
     "<div ng-show=\"showNameInput\" class=\"form-group\">\n" +
-    "<label for=\"config-map-name\" class=\"required\">Name</label>\n" +
+    "<label for=\"key-value-map-name\" class=\"required\">Name</label>\n" +
     "\n" +
-    "<div ng-class=\"{ 'has-error': configMapForm.name.$invalid && configMapForm.name.$touched }\">\n" +
-    "<input id=\"config-map-name\" class=\"form-control\" type=\"text\" name=\"name\" ng-model=\"configMap.metadata.name\" ng-required=\"showNameInput\" ng-pattern=\"nameValidation.pattern\" ng-maxlength=\"nameValidation.maxlength\" placeholder=\"my-config-map\" select-on-focus autocorrect=\"off\" autocapitalize=\"none\" spellcheck=\"false\" aria-describedby=\"config-map-name-help\">\n" +
+    "<div ng-class=\"{ 'has-error': keyValueMapForm.name.$invalid && keyValueMapForm.name.$touched }\">\n" +
+    "<input id=\"key-value-map-name\" class=\"form-control\" type=\"text\" name=\"name\" ng-model=\"map.metadata.name\" ng-required=\"showNameInput\" ng-pattern=\"nameValidation.pattern\" ng-maxlength=\"nameValidation.maxlength\" placeholder=\"my-{{type}}\" select-on-focus autocorrect=\"off\" autocapitalize=\"none\" spellcheck=\"false\" aria-describedby=\"key-value-map-name-help\">\n" +
     "</div>\n" +
     "<div>\n" +
-    "<span id=\"config-map-name-help\" class=\"help-block\">A unique name for the config map within the project.</span>\n" +
+    "<span id=\"key-value-map-name-help\" class=\"help-block\">A unique name for the {{type}} within the project.</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm.name.$error.pattern && configMapForm.name.$touched\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm.name.$error.pattern && keyValueMapForm.name.$touched\">\n" +
     "<span class=\"help-block\">\n" +
     "{{nameValidation.description}}\n" +
     "</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm.name.$error.required && configMapForm.name.$touched\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm.name.$error.required && keyValueMapForm.name.$touched\">\n" +
     "<span class=\"help-block\">\n" +
     "Name is required.\n" +
     "</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm.name.$error.maxlength\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm.name.$error.maxlength\">\n" +
     "<span class=\"help-block\">\n" +
     "Can't be longer than {{nameValidation.maxlength}} characters.\n" +
     "</span>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div ng-if=\"!data.length\">\n" +
-    "<p><em>The config map has no items.</em></p>\n" +
+    "<p><em>The {{type}} has no items.</em></p>\n" +
     "<a href=\"\" ng-click=\"addItem()\">Add Item</a>\n" +
     "</div>\n" +
     "<div ng-repeat=\"item in data\" ng-init=\"keys = getKeys()\">\n" +
     "<div class=\"form-group\">\n" +
     "<label ng-attr-for=\"key-{{$id}}\" class=\"required\">Key</label>\n" +
     "\n" +
-    "<div ng-class=\"{ 'has-error': configMapForm['key-' + $id].$invalid && configMapForm['key-' + $id].$touched }\">\n" +
+    "<div ng-class=\"{ 'has-error': keyValueMapForm['key-' + $id].$invalid && keyValueMapForm['key-' + $id].$touched }\">\n" +
     "<input class=\"form-control\" name=\"key-{{$id}}\" ng-attr-id=\"key-{{$id}}\" type=\"text\" ng-model=\"item.key\" required ng-pattern=\"/^[-._a-zA-Z0-9]+$/\" ng-maxlength=\"253\" osc-unique=\"keys\" placeholder=\"my.key\" select-on-focus autocorrect=\"off\" autocapitalize=\"none\" spellcheck=\"false\" aria-describedby=\"key-{{$id}}-help\">\n" +
     "</div>\n" +
     "<div class=\"help-block\">\n" +
-    "A unique key for this config map entry.\n" +
+    "A unique key for this {{type}} entry.\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm['key-' + $id].$error.required && configMapForm['key-' + $id].$touched\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm['key-' + $id].$error.required && keyValueMapForm['key-' + $id].$touched\">\n" +
     "<span class=\"help-block\">\n" +
     "Key is required.\n" +
     "</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm['key-' + $id].$error.oscUnique && configMapForm['key-' + $id].$touched\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm['key-' + $id].$error.oscUnique && keyValueMapForm['key-' + $id].$touched\">\n" +
     "<span class=\"help-block\">\n" +
-    "Duplicate key \"{{item.key}}\". Keys must be unique within the config map.\n" +
+    "Duplicate key \"{{item.key}}\". Keys must be unique within the {{type}}.\n" +
     "</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm['key-' + $id].$error.pattern && configMapForm['key-' + $id].$touched\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm['key-' + $id].$error.pattern && keyValueMapForm['key-' + $id].$touched\">\n" +
     "<span class=\"help-block\">\n" +
-    "Config map keys may only consist of letters, numbers, periods, hyphens, and underscores.\n" +
+    "Keys may only consist of letters, numbers, periods, hyphens, and underscores.\n" +
     "</span>\n" +
     "</div>\n" +
-    "<div class=\"has-error\" ng-show=\"configMapForm['key-' + $id].$error.maxlength\">\n" +
+    "<div class=\"has-error\" ng-show=\"keyValueMapForm['key-' + $id].$error.maxlength\">\n" +
     "<span class=\"help-block\">\n" +
-    "Config map keys may not be longer than 253 characters.\n" +
+    "Keys may not be longer than 253 characters.\n" +
     "</span>\n" +
     "</div>\n" +
     "</div>\n" +
     "<div class=\"form-group\" ng-attr-id=\"drop-zone-{{$id}}\">\n" +
     "<label ng-attr-for=\"name-{{$id}}\">Value</label>\n" +
-    "<osc-file-input model=\"item.value\" drop-zone-id=\"drop-zone-{{$id}}\" help-text=\"Enter a value for the config map entry or use the contents of a file.\"></osc-file-input>\n" +
+    "<div ng-if=\"isBinaryFile\" class=\"h4\">\n" +
+    "This file contains binary content.\n" +
+    "</div>\n" +
+    "<osc-file-input model=\"item.value\" drop-zone-id=\"drop-zone-{{$id}}\" help-text=\"Enter a value for the {{type}} entry or use the contents of a file.\" read-as-binary-string=\"readAsBinaryString\" is-binary-file=\"isBinaryFile\"></osc-file-input>\n" +
     "<div ui-ace=\"{\n" +
     "          theme: 'eclipse',\n" +
     "          rendererOptions: {\n" +
     "            showPrintMargin: false\n" +
     "          }\n" +
-    "        }\" ng-model=\"item.value\" class=\"ace-bordered ace-inline-small mar-top-sm\" ng-attr-id=\"value-{{$id}}\"></div>\n" +
+    "        }\" ng-model=\"item.value\" ng-if=\"!isBinaryFile\" class=\"ace-bordered ace-inline-small mar-top-sm\" ng-attr-id=\"value-{{$id}}\"></div>\n" +
     "</div>\n" +
     "<div class=\"mar-bottom-md\">\n" +
     "<a href=\"\" ng-click=\"removeItem($index)\">Remove Item</a>\n" +
@@ -8142,7 +8188,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<div class=\"has-error\" ng-show=\"uploadError\">\n" +
     "<span class=\"help-block\">There was an error reading the file. Please copy the file content into the text area.</span>\n" +
     "</div>\n" +
-    "<textarea class=\"form-control\" rows=\"5\" ng-show=\"showTextArea || !supportsFileUpload\" ng-model=\"model\" ng-required=\"required\" ng-disabled=\"disabled\" ng-readonly=\"readonly\" autocorrect=\"off\" autocapitalize=\"none\" spellcheck=\"false\" ng-attr-aria-describedby=\"{{helpText ? helpID : undefined}}\">\n" +
+    "<textarea class=\"form-control\" rows=\"5\" ng-show=\"(showTextArea && !isBinaryFile) || !supportsFileUpload\" ng-model=\"model\" ng-required=\"required\" ng-disabled=\"disabled\" ng-readonly=\"readonly\" autocorrect=\"off\" autocapitalize=\"none\" spellcheck=\"false\" ng-attr-aria-describedby=\"{{helpText ? helpID : undefined}}\">\n" +
     "  </textarea>\n" +
     "<a href=\"\" ng-show=\"(model || fileName) && !disabled && !readonly && !hideClear\" ng-click=\"cleanInputValues()\">Clear Value</a>\n" +
     "</div>"
@@ -9338,6 +9384,15 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
   );
 
 
+  $templateCache.put('views/directives/service-instance-integrations.html',
+    "<div ng-if=\"($ctrl.integrationsData | size)\" class=\"row service-integrations\">\n" +
+    "<div class=\"component-label section-label\">Integrations</div>\n" +
+    "<service-integration ng-repeat=\"integration in $ctrl.integrationsData\" integration=\"integration\" consumer-service=\"$ctrl.consumerService\">\n" +
+    "</service-integration>\n" +
+    "</div>"
+  );
+
+
   $templateCache.put('views/directives/traffic-table.html',
     " <table class=\"table table-bordered table-mobile\">\n" +
     "<thead>\n" +
@@ -9988,7 +10043,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "Config map {[configMap.metadata.name}} has been deleted since you started editing it.\n" +
     "</div>\n" +
     "<fieldset ng-disabled=\"disableInputs\">\n" +
-    "<edit-config-map model=\"configMap\"></edit-config-map>\n" +
+    "<edit-config-map-or-secret model=\"configMap\" type=\"config map\"></edit-config-map-or-secret>\n" +
     "<div class=\"button-group gutter-top gutter-bottom\">\n" +
     "<button type=\"submit\" class=\"btn btn-primary btn-lg\" ng-click=\"updateConfigMap()\" ng-disabled=\"forms.editConfigMapForm.$invalid || forms.editConfigMapForm.$pristine || disableInputs || resourceChanged || resourceDeleted\" value=\"\">Save</button>\n" +
     "<a class=\"btn btn-default btn-lg\" href=\"\" ng-click=\"cancel()\" role=\"button\">Cancel</a>\n" +
@@ -11423,7 +11478,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<div class=\"list-pf-additional-content\">\n" +
     "<div class=\"list-pf-additional-content-item\">\n" +
     "<div class=\"pods\">\n" +
-    "<a href=\"\" ng-click=\"viewPodsForSet(replicationController)\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[replicationController.metadata.uid] | size) }\">\n" +
+    "<a ng-href=\"{{replicationController | donutURL : podsByOwnerUID[replicationController.metadata.uid]}}\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[replicationController.metadata.uid] | size) }\">\n" +
     "<pod-donut pods=\"podsByOwnerUID[replicationController.metadata.uid]\" mini=\"true\"></pod-donut>\n" +
     "</a>\n" +
     "</div>\n" +
@@ -11475,7 +11530,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<div class=\"list-pf-additional-content\">\n" +
     "<div class=\"list-pf-additional-content-item\">\n" +
     "<div class=\"pods\">\n" +
-    "<a href=\"\" ng-click=\"viewPodsForSet(replicaSet)\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[replicaSet.metadata.uid] | size) }\">\n" +
+    "<a ng-href=\"{{replicaSet | donutURL : podsByOwnerUID[replicaSet.metadata.uid]}}\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[replicaSet.metadata.uid] | size) }\">\n" +
     "<pod-donut pods=\"podsByOwnerUID[replicaSet.metadata.uid]\" mini=\"true\"></pod-donut>\n" +
     "</a>\n" +
     "</div>\n" +
@@ -11504,7 +11559,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "Logs are not available for replica sets.\n" +
     "<span ng-if=\"podsByOwnerUID[replicaSet.metadata.uid] | size\">\n" +
     "To see application logs, view the logs for one of the replica set's\n" +
-    "<a href=\"\" ng-click=\"viewPodsForSet(replicaSet)\">pods</a>.\n" +
+    "<a ng-href=\"{{replicaSet | donutURL : podsByOwnerUID[replicaSet.metadata.uid]}}\">pods</a>.\n" +
     "</span>\n" +
     "<div class=\"mar-top-lg\" ng-if=\"metricsAvailable\">\n" +
     "<deployment-metrics pods=\"podsByOwnerUID[replicaSet.metadata.uid]\" containers=\"replicaSet.spec.template.spec.containers\" alerts=\"alerts\">\n" +
@@ -11554,7 +11609,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<div class=\"list-pf-additional-content\">\n" +
     "<div class=\"list-pf-additional-content-item\">\n" +
     "<div class=\"pods\">\n" +
-    "<a href=\"\" ng-click=\"viewPodsForSet(set)\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[set.metadata.uid] | size) }\">\n" +
+    "<a ng-href=\"{{set | donutURL : podsByOwnerUID[set.metadata.uid]}}\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(podsByOwnerUID[set.metadata.uid] | size) }\">\n" +
     "<pod-donut pods=\"podsByOwnerUID[set.metadata.uid]\" mini=\"true\"></pod-donut>\n" +
     "</a>\n" +
     "</div>\n" +
@@ -11571,7 +11626,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "Logs are not available for stateful sets.\n" +
     "<span ng-if=\"podsByOwnerUID[set.metadata.uid] | size\">\n" +
     "To see application logs, view the logs for one of the stateful sets's\n" +
-    "<a href=\"\" ng-click=\"viewPodsForSet(set)\">pods</a>.\n" +
+    "<a ng-href=\"{{set | donutURL : podsByOwnerUID[set.metadata.uid]}}\">pods</a>.\n" +
     "</span>\n" +
     "<div class=\"mar-top-lg\" ng-if=\"metricsAvailable\">\n" +
     "<deployment-metrics pods=\"podsByOwnerUID[set.metadata.uid]\" containers=\"set.spec.template.spec.containers\" alerts=\"alerts\">\n" +
@@ -12357,7 +12412,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</a>\n" +
     "</div>\n" +
     "<div ng-if=\"row.apiObject.kind !== 'Pod'\">\n" +
-    "<a href=\"\" ng-click=\"row.navigateToPods()\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(row.getPods(row.current) | size) }\">\n" +
+    "<a ng-href=\"{{row.current | donutURL : row.getPods(row.current)}}\" class=\"mini-donut-link\" ng-class=\"{ 'disabled-link': !(row.getPods(row.current) | size) }\">\n" +
     "<pod-donut pods=\"row.getPods(row.current)\" idled=\"!(row.getPods(row.current) | size) && (row.apiObject | annotation : 'idledAt')\" mini=\"true\">\n" +
     "</pod-donut>\n" +
     "</a>\n" +
@@ -12928,10 +12983,14 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</div>\n" +
     "</div>\n" +
     "<div class=\"expanded-section\">\n" +
-    "<div ng-if=\"row.isBindable || (row.bindings | size)\">\n" +
+    "<div ng-if=\"(row.isBindable || (row.bindings | size))\">\n" +
     "<div class=\"component-label section-label\">Bindings</div>\n" +
     "<service-instance-bindings is-overview=\"true\" project=\"row.state.project\" bindings=\"row.bindings\" service-instance=\"row.apiObject\" service-class=\"row.serviceClass\" service-plan=\"row.servicePlan\">\n" +
     "</service-instance-bindings>\n" +
+    "</div>\n" +
+    "<div ng-if=\"row.integrations | size\">\n" +
+    "<service-instance-integrations ng-if=\"row.instanceStatus === 'ready'\" is-overview=\"true\" integrations=\"row.integrations\" consumer-service=\"row.apiObject\">\n" +
+    "</service-instance-integrations>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +

@@ -36,6 +36,15 @@ angular.module("openshiftConsole")
         };
 
         $scope.secretAuthTypeMap = {
+          generic: {
+            label: "Generic Secret",
+            authTypes: [
+              {
+                id: "Opaque",
+                label: "Generic Secret"
+              }
+            ]
+          },
           image: {
             label: "Image Secret",
             authTypes: [
@@ -95,7 +104,11 @@ angular.module("openshiftConsole")
           $scope.newSecret = {
             type: "source",
             authType: "kubernetes.io/basic-auth",
-            data: {},
+            data: {
+              genericKeyValues: {
+                data: {}
+              }
+            },
             linkSecret: false,
             pickedServiceAccountToLink: "",
           };
@@ -172,6 +185,10 @@ angular.module("openshiftConsole")
             case "Opaque":
               if (data.webhookSecretKey) {
                 secret.stringData.WebHookSecretKey = data.webhookSecretKey;
+              }
+              if (data.genericKeyValues.data) {
+                // Base64 encode the values.
+                secret.data = _.mapValues(data.genericKeyValues.data, window.btoa);
               }
               break;
           }

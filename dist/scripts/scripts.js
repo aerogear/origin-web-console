@@ -571,6 +571,16 @@ i();
 };
 }
 
+function ServiceInstanceIntegrations(e, t) {
+var n = this, r = e.getPreferredVersion("clusterserviceclasses");
+t.list(r, {}).then(function(e) {
+n.integrationsData = _.filter(e.by("metadata.name"), function(e) {
+var t = _.get(e, "spec.externalMetadata.serviceName");
+return n.integrations.contains(t);
+});
+});
+}
+
 angular.isUndefined(window.OPENSHIFT_CONSTANTS) && (window.OPENSHIFT_CONSTANTS = {}), angular.extend(window.OPENSHIFT_CONSTANTS, {
 HELP_BASE_URL: "https://docs.openshift.org/latest/",
 HELP: {
@@ -1078,13 +1088,11 @@ var r, a = {
 templateUrl: "views/projects.html",
 controller: "ProjectsController"
 };
-_.get(window, "OPENSHIFT_CONSTANTS.DISABLE_SERVICE_CATALOG_LANDING_PAGE") ? (r = a, e.when("/projects", {
-redirectTo: "/"
-})) : (r = {
+r = _.get(window, "OPENSHIFT_CONSTANTS.DISABLE_SERVICE_CATALOG_LANDING_PAGE") ? a : {
 templateUrl: "views/landing-page.html",
 controller: "LandingPageController",
 reloadOnSearch: !1
-}, e.when("/projects", a)), e.when("/", {
+}, e.when("/projects", a), e.when("/", {
 redirectTo: function() {
 return n.$get().getHomePagePath();
 }
@@ -1826,10 +1834,8 @@ name: t
 };
 _.isObject(r) && _.extend(a, r), e.path("project/" + encodeURIComponent(n) + "/create/next").search(a);
 },
-toPodsForDeployment: function(t, r) {
-1 !== _.size(r) ? (e.url("/project/" + t.metadata.namespace + "/browse/pods"), n(function() {
-a.setLabelSelector(new LabelSelector(t.spec.selector, !0));
-}, 1)) : this.toResourceURL(_.sample(r));
+toPodsForDeployment: function(e, t) {
+1 !== _.size(t) ? this.toResourceURL(e) : this.toResourceURL(_.sample(t));
 },
 resourceURL: function(e, t, n, r, a) {
 if (r = r || "browse", !(e && (e.metadata || t && n))) return null;
@@ -3305,41 +3311,41 @@ message: null
 }
 };
 }), angular.module("openshiftConsole").factory("SecretsService", [ "$filter", "Logger", "NotificationsService", function(e, t, n) {
-var r = function(r, a) {
+var r = e("isNonPrintable"), a = function(r, a) {
 n.addNotification({
 type: "error",
 message: "Base64-encoded " + a + " string could not be decoded.",
 details: e("getErrorDetails")(r)
 }), t.error("Base64-encoded " + a + " string could not be decoded.", r);
-}, a = function(e) {
+}, o = function(e) {
 var t = _.pick(e, [ "email", "username", "password" ]);
 if (e.auth) try {
 _.spread(function(e, n) {
 t.username = e, t.password = n;
 })(_.split(window.atob(e.auth), ":", 2));
 } catch (e) {
-return void r(e, "username:password");
+return void a(e, "username:password");
 }
 return t;
-}, o = function(e, t) {
-var n, o = {
+}, i = function(e, t) {
+var n, r = {
 auths: {}
 };
 try {
 n = JSON.parse(window.atob(e));
 } catch (e) {
-r(e, t);
+a(e, t);
 }
 return n.auths ? (_.each(n.auths, function(e, t) {
-e.auth ? o.auths[t] = a(e) : o.auths[t] = e;
-}), n.credsStore && (o.credsStore = n.credsStore)) : _.each(n, function(e, t) {
-o.auths[t] = a(e);
-}), o;
-}, i = function(e) {
+e.auth ? r.auths[t] = o(e) : r.auths[t] = e;
+}), n.credsStore && (r.credsStore = n.credsStore)) : _.each(n, function(e, t) {
+r.auths[t] = o(e);
+}), r;
+}, s = function(e) {
 var t = {}, n = _.mapValues(e, function(e, n) {
 if (!e) return "";
-var r;
-return ".dockercfg" === n || ".dockerconfigjson" === n ? o(e, n) : (r = window.atob(e), /[\x00-\x09\x0E-\x1F]/.test(r) ? (t[n] = !0, e) : r);
+var a;
+return ".dockercfg" === n || ".dockerconfigjson" === n ? i(e, n) : (a = window.atob(e), r(a) ? (t[n] = !0, e) : a);
 });
 return n.$$nonprintable = t, n;
 };
@@ -3369,7 +3375,7 @@ t.other.push(e);
 }
 }), t;
 },
-decodeSecretData: i,
+decodeSecretData: s,
 getWebhookSecretValue: function(e, t) {
 if (_.get(e, "secretReference.name") && t) {
 var n = _.find(t, {
@@ -3377,7 +3383,7 @@ metadata: {
 name: e.secretReference.name
 }
 });
-return i(n.data).WebHookSecretKey;
+return s(n.data).WebHookSecretKey;
 }
 return _.get(e, "secret");
 }
@@ -5188,9 +5194,6 @@ case "StatefulSet":
 s = !n.expanded.statefulSets[a.metadata.name], n.expanded.statefulSets[a.metadata.name] = s, c = s ? "event.resource.highlight" : "event.resource.clear-highlight", f.$emit(c, a);
 }
 }
-}, n.viewPodsForSet = function(e) {
-var t = _.get(n, [ "podsByOwnerUID", e.metadata.uid ], []);
-_.isEmpty(t) || d.toPodsForDeployment(e, t);
 }, p.get(e.project).then(_.spread(function(e, r) {
 n.project = e, n.projectContext = r, v.push(i.watch("pods", r, function(e) {
 n.podsByName = e.by("metadata.name"), n.pods = w(n.podsByName, !0), n.podsByOwnerUID = m.groupByOwnerUID(n.pods), n.podsLoaded = !0, _.each(n.pods, I), N(), l.log("pods", n.pods);
@@ -9126,6 +9129,13 @@ pattern: /^[a-zA-Z0-9\-_]+$/,
 minLength: 8,
 description: "Secret reference key must consist of lower-case, upper-case letters, numbers, dash, and underscore."
 }, l.secretAuthTypeMap = {
+generic: {
+label: "Generic Secret",
+authTypes: [ {
+id: "Opaque",
+label: "Generic Secret"
+} ]
+},
 image: {
 label: "Image Secret",
 authTypes: [ {
@@ -9162,7 +9172,11 @@ pickedServiceAccountToLink: l.serviceAccountToLink || ""
 } : l.newSecret = {
 type: "source",
 authType: "kubernetes.io/basic-auth",
-data: {},
+data: {
+genericKeyValues: {
+data: {}
+}
+},
 linkSecret: !1,
 pickedServiceAccountToLink: ""
 }, l.add = {
@@ -9206,7 +9220,7 @@ auth: o
 break;
 
 case "Opaque":
-e.webhookSecretKey && (r.stringData.WebHookSecretKey = e.webhookSecretKey);
+e.webhookSecretKey && (r.stringData.WebHookSecretKey = e.webhookSecretKey), e.genericKeyValues.data && (r.data = _.mapValues(e.genericKeyValues.data, window.btoa));
 }
 return r;
 }, d = function() {
@@ -9395,15 +9409,17 @@ details: n("getErrorDetails")(e)
 };
 }
 };
-} ]), angular.module("openshiftConsole").directive("editConfigMap", [ "DNS1123_SUBDOMAIN_VALIDATION", function(e) {
+} ]), angular.module("openshiftConsole").directive("editConfigMapOrSecret", [ "DNS1123_SUBDOMAIN_VALIDATION", function(e) {
 return {
 require: "^form",
 restrict: "E",
 scope: {
-configMap: "=model",
-showNameInput: "="
+map: "=model",
+showNameInput: "=",
+type: "@",
+readAsBinaryString: "=?"
 },
-templateUrl: "views/directives/edit-config-map.html",
+templateUrl: "views/directives/edit-config-map-or-secret.html",
 link: function(t, n, r, a) {
 t.form = a, t.nameValidation = e, t.addItem = function() {
 t.data.push({
@@ -9415,7 +9431,7 @@ t.data.splice(e, 1), t.form.$setDirty();
 }, t.getKeys = function() {
 return _.map(t.data, "key");
 };
-var o = t.$watch("configMap.data", function(e) {
+var o = t.$watch("map.data", function(e) {
 e && (t.data = _.map(e, function(e, t) {
 return {
 key: t,
@@ -9425,7 +9441,7 @@ value: e
 var n = {};
 _.each(e, function(e) {
 n[e.key] = e.value;
-}), _.set(t, "configMap.data", n);
+}), _.set(t, "map.data", n);
 }, !0));
 });
 }
@@ -9961,7 +9977,7 @@ var A = e("displayName");
 p.$on("importFileFromYAMLOrJSON", p.create), p.$on("$destroy", T);
 } ]
 };
-} ]), angular.module("openshiftConsole").directive("oscFileInput", [ "Logger", function(e) {
+} ]), angular.module("openshiftConsole").directive("oscFileInput", [ "$filter", "Logger", function(e, t) {
 return {
 restrict: "E",
 scope: {
@@ -9973,45 +9989,47 @@ showTextArea: "<",
 hideClear: "<?",
 helpText: "@?",
 dropZoneId: "@?",
-onFileAdded: "<?"
+onFileAdded: "<?",
+readAsBinaryString: "<?",
+isBinaryFile: "=?"
 },
 templateUrl: "views/directives/osc-file-input.html",
-link: function(t, n) {
-function r(n) {
+link: function(n, r) {
+function a(e) {
 var r = new FileReader();
 r.onloadend = function() {
-t.$apply(function() {
-t.fileName = n.name, t.model = r.result;
-var e = t.onFileAdded;
-_.isFunction(e) && e(r.result), r.error || (t.uploadError = !1);
+n.$apply(function() {
+n.fileName = e.name, n.model = r.result, n.isBinaryFile = i(r.result);
+var t = n.onFileAdded;
+_.isFunction(t) && t(r.result), r.error || (n.uploadError = !1);
 });
-}, r.onerror = function(n) {
-t.uploadError = !0, e.error("Could not read file", n);
-}, r.readAsText(n);
+}, r.onerror = function(e) {
+n.uploadError = !0, t.error("Could not read file", e);
+}, n.readAsBinaryString ? r.readAsBinaryString(e) : r.readAsText(e);
 }
-function a() {
-n.find(".drag-and-drop-zone").removeClass("show-drag-and-drop-zone highlight-drag-and-drop-zone");
+function o() {
+r.find(".drag-and-drop-zone").removeClass("show-drag-and-drop-zone highlight-drag-and-drop-zone");
 }
-var o = _.uniqueId("osc-file-input-");
-t.dropMessageID = o + "-drop-message", t.helpID = o + "-help", t.supportsFileUpload = window.File && window.FileReader && window.FileList && window.Blob, t.uploadError = !1;
-var i = "#" + t.dropMessageID, s = !1, c = !1, l = n.find("input[type=file]");
+var i = e("isNonPrintable"), s = _.uniqueId("osc-file-input-");
+n.dropMessageID = s + "-drop-message", n.helpID = s + "-help", n.supportsFileUpload = window.File && window.FileReader && window.FileList && window.Blob, n.uploadError = !1;
+var c = "#" + n.dropMessageID, l = !1, u = !1, d = r.find("input[type=file]");
 setTimeout(function() {
-var e = n.find(".drag-and-drop-zone");
+var e = r.find(".drag-and-drop-zone");
 e.on("dragover", function() {
-t.disabled || (e.addClass("highlight-drag-and-drop-zone"), s = !0);
-}), n.find(".drag-and-drop-zone p").on("dragover", function() {
-t.disabled || (s = !0);
+n.disabled || (e.addClass("highlight-drag-and-drop-zone"), l = !0);
+}), r.find(".drag-and-drop-zone p").on("dragover", function() {
+n.disabled || (l = !0);
 }), e.on("dragleave", function() {
-t.disabled || (s = !1, _.delay(function() {
-s || e.removeClass("highlight-drag-and-drop-zone");
+n.disabled || (l = !1, _.delay(function() {
+l || e.removeClass("highlight-drag-and-drop-zone");
 }, 200));
 }), e.on("drop", function(e) {
-if (!t.disabled) {
-var n = _.get(e, "originalEvent.dataTransfer.files", []);
-return n.length > 0 && (t.file = _.head(n), r(t.file)), a(), $(".drag-and-drop-zone").trigger("putDropZoneFront", !1), $(".drag-and-drop-zone").trigger("reset"), !1;
+if (!n.disabled) {
+var t = _.get(e, "originalEvent.dataTransfer.files", []);
+return t.length > 0 && (n.file = _.head(t), a(n.file)), o(), $(".drag-and-drop-zone").trigger("putDropZoneFront", !1), $(".drag-and-drop-zone").trigger("reset"), !1;
 }
 });
-var o = function(e, t) {
+var t = function(e, t) {
 var n = t.find("label").outerHeight(), r = n ? t.outerHeight() - n : t.outerHeight(), a = t.outerWidth();
 e.css({
 width: a + 6,
@@ -10020,30 +10038,30 @@ position: "absolute",
 "z-index": 100
 });
 };
-e.on("putDropZoneFront", function(e, r) {
-if (!t.disabled) {
-var a, i = n.find(".drag-and-drop-zone");
-return r ? (a = t.dropZoneId ? $("#" + t.dropZoneId) : n, o(i, a)) : i.css("z-index", "-1"), !1;
+e.on("putDropZoneFront", function(e, a) {
+if (!n.disabled) {
+var o, i = r.find(".drag-and-drop-zone");
+return a ? (o = n.dropZoneId ? $("#" + n.dropZoneId) : r, t(i, o)) : i.css("z-index", "-1"), !1;
 }
 }), e.on("reset", function() {
-if (!t.disabled) return c = !1, !1;
+if (!n.disabled) return u = !1, !1;
 });
-}), $(document).on("drop." + o, function() {
-return a(), n.find(".drag-and-drop-zone").trigger("putDropZoneFront", !1), !1;
-}), $(document).on("dragenter." + o, function() {
-if (!t.disabled) return c = !0, n.find(".drag-and-drop-zone").addClass("show-drag-and-drop-zone"), n.find(".drag-and-drop-zone").trigger("putDropZoneFront", !0), !1;
-}), $(document).on("dragover." + o, function() {
-if (!t.disabled) return c = !0, n.find(".drag-and-drop-zone").addClass("show-drag-and-drop-zone"), !1;
-}), $(document).on("dragleave." + o, function() {
-return c = !1, _.delay(function() {
-c || n.find(".drag-and-drop-zone").removeClass("show-drag-and-drop-zone");
+}), $(document).on("drop." + s, function() {
+return o(), r.find(".drag-and-drop-zone").trigger("putDropZoneFront", !1), !1;
+}), $(document).on("dragenter." + s, function() {
+if (!n.disabled) return u = !0, r.find(".drag-and-drop-zone").addClass("show-drag-and-drop-zone"), r.find(".drag-and-drop-zone").trigger("putDropZoneFront", !0), !1;
+}), $(document).on("dragover." + s, function() {
+if (!n.disabled) return u = !0, r.find(".drag-and-drop-zone").addClass("show-drag-and-drop-zone"), !1;
+}), $(document).on("dragleave." + s, function() {
+return u = !1, _.delay(function() {
+u || r.find(".drag-and-drop-zone").removeClass("show-drag-and-drop-zone");
 }, 200), !1;
-}), t.cleanInputValues = function() {
-t.model = "", t.fileName = "", l[0].value = "";
-}, l.change(function() {
-r(l[0].files[0]), l[0].value = "";
-}), t.$on("$destroy", function() {
-$(i).off(), $(document).off("drop." + o).off("dragenter." + o).off("dragover." + o).off("dragleave." + o);
+}), n.cleanInputValues = function() {
+n.model = "", n.fileName = "", n.isBinaryFile = !1, d[0].value = "";
+}, d.change(function() {
+a(d[0].files[0]), d[0].value = "";
+}), n.$on("$destroy", function() {
+$(c).off(), $(document).off("drop." + s).off("dragenter." + s).off("dragover." + s).off("dragleave." + s);
 });
 }
 };
@@ -13293,7 +13311,7 @@ f.plan = e, f.parameterSchema = _.get(f.plan, "spec.serviceBindingCreateParamete
 });
 });
 }), f.$onInit = function() {
-f.serviceSelection = {}, f.projectDisplayName = t("displayName")(f.project), f.podPresets = v("pod_presets"), f.parameterData = {}, f.steps = [ c, l, u ], f.hideBack = l.hidden, "ServiceInstance" === f.target.kind ? (f.bindType = "secret-only", f.appToBind = null, f.serviceToBind = f.target, f.podPresets && w()) : (f.bindType = "application", f.appToBind = f.target, P());
+f.serviceSelection = {}, f.projectDisplayName = t("displayName")(f.project), f.podPresets = v("pod_presets"), f.parameterData = f.parameterData || {}, f.steps = [ c, l, u ], f.hideBack = l.hidden, "ServiceInstance" === f.target.kind ? (f.bindType = "secret-only", f.appToBind = null, f.serviceToBind = f.target, f.podPresets && w()) : (f.bindType = "application", f.appToBind = f.target, P());
 }, f.$onChanges = function(e) {
 e.project && !e.project.isFirstChange() && (f.projectDisplayName = t("displayName")(f.project));
 }, f.$onDestroy = function() {
@@ -13305,10 +13323,12 @@ namespace: _.get(e, "metadata.namespace")
 a.bindService(e, t, r, f.parameterData).then(function(e) {
 f.binding = e, f.error = null, p = i.watchObject(a.bindingResource, _.get(f.binding, "metadata.name"), n, function(e) {
 f.binding = e;
-});
+}), f.wizardFinished(e);
 }, function(e) {
 f.error = e;
 });
+}, f.wizardFinished = function(e) {
+_.isFunction(f.onFinish) && f.onFinish(e);
 }, f.closeWizard = function() {
 _.isFunction(f.onClose) && f.onClose();
 };
@@ -13317,7 +13337,9 @@ controllerAs: "ctrl",
 bindings: {
 target: "<",
 project: "<",
-onClose: "<"
+onClose: "<",
+onFinish: "<",
+parameterData: "<"
 },
 templateUrl: "views/directives/bind-service.html"
 });
@@ -13907,6 +13929,149 @@ state: "<"
 },
 templateUrl: "views/overview/_mobile-client-row.html"
 });
+}(), angular.module("openshiftConsole").component("serviceInstanceIntegrations", {
+controller: [ "APIService", "DataService", ServiceInstanceIntegrations ],
+controllerAs: "$ctrl",
+bindings: {
+integrations: "<",
+consumerService: "<"
+},
+templateUrl: "views/directives/service-instance-integrations.html"
+}), function() {
+angular.module("openshiftConsole").component("serviceIntegration", {
+controller: [ "$filter", "$scope", "APIService", "AuthorizationService", "BindingService", "Catalog", "DataService", "NotificationsService", function(e, t, n, r, a, o, i, s) {
+var c = this, l = n.getPreferredVersion("deployments"), u = n.getPreferredVersion("servicebindings"), d = n.getPreferredVersion("serviceinstances"), m = n.kindToResourceGroupVersion({
+group: "settings.k8s.io",
+kind: "podpreset"
+}), p = e("isServiceInstanceReady"), f = e("isBindingReady"), g = e("getErrorDetails"), v = c.integration.spec.externalMetadata.serviceName, h = [];
+t.$on("$destroy", function() {
+i.unwatchAll(h);
+}), c.$onInit = function() {
+var e = {
+namespace: c.consumerService.metadata.namespace
+};
+i.watch(m, e, function(e) {
+var t = e.by("metadata.name");
+c.podPreset = _.find(t, function(e) {
+return e.metadata.name === _.get(c.consumerService, "metadata.name") + "-" + _.get(c.serviceInstance, "metadata.name");
+});
+}), h.push(i.watch(u, e, function(e) {
+var t = e.by("metadata.name");
+c.binding = _.find(t, function(e) {
+var t = _.get(e, [ "metadata", "annotations", "integrations.aerogear.org/provider" ]), n = _.get(e, [ "metadata", "annotations", "integrations.aerogear.org/consumer" ]), r = _.get(c, "consumerService.metadata.labels.serviceName");
+return t && n && r && t === v && n === r;
+});
+})), h.push(i.watch(d, e, function(e) {
+var t = e.by("metadata.name");
+c.serviceInstance = _.find(t, function(e) {
+return _.get(e, "spec.clusterServiceClassExternalName") === c.integration.spec.externalName;
+});
+}));
+};
+var y = function(e, t, n) {
+var r = _.get(e, "metadata.name"), a = _.get(t, "metadata.name"), o = {
+apiVersion: "settings.k8s.io/v1alpha1",
+kind: "PodPreset",
+metadata: {
+name: r + "-" + a,
+labels: {
+group: "mobile",
+service: a
+}
+},
+spec: {
+selector: {
+matchLabels: {
+run: r
+}
+},
+volumeMounts: [ {
+mountPath: "/etc/secrets/" + a,
+readOnly: !0,
+name: a
+} ],
+volumes: [ {
+name: a,
+secret: {
+secretName: _.get(n, "spec.secretName")
+}
+} ]
+}
+};
+return o.spec.selector.matchLabels[a] = "enabled", o;
+};
+c.integrationPanelVisible = !1, c.closeIntegrationPanel = function() {
+c.integrationPanelVisible = !1;
+}, c.openIntegrationPanel = function() {
+c.parameterData = {
+service: _.get(c.consumerService, "metadata.labels.serviceName")
+}, c.integrationPanelVisible = !0;
+}, c.provision = function() {
+t.$emit("open-overlay-panel", o.getServiceItem(c.integration));
+}, c.onBind = function(e) {
+var t = {
+namespace: _.get(c.consumerService, "metadata.namespace")
+}, n = y(c.consumerService, c.serviceInstance, e), r = {
+group: "settings.k8s.io",
+resource: "podpresets",
+version: "v1alpha1"
+}, a = i.watchObject(u, _.get(e, "metadata.name"), t, function(e) {
+if (f(e)) {
+i.unwatch(a);
+var n = angular.copy(e);
+s.addNotification({
+type: "success",
+message: "A binding has been created for " + _.get(c, "consumerService.metadata.labels.serviceName") + " and it has been redeployed."
+}), _.setWith(n, [ "metadata", "annotations", "integrations.aerogear.org/consumer" ], c.consumerService.metadata.labels.serviceName), _.setWith(n, [ "metadata", "annotations", "integrations.aerogear.org/provider" ], v), i.update(u, n.metadata.name, n, t).then(function() {
+return i.get(l, _.get(c, "consumerService.metadata.labels.serviceName"), t, {
+errorNotification: !1
+});
+}).then(function(e) {
+return e.spec.template.metadata.labels[_.get(c.serviceInstance, "metadata.labels.serviceName")] = "enabled", i.update(l, _.get(c, "consumerService.metadata.labels.serviceName"), e, t);
+}).catch(function(e) {
+s.addNotification({
+type: "error",
+message: "Failed to integrate service binding.",
+details: e.data.message
+});
+});
+}
+});
+i.create(r, null, n, t).catch(function(e) {
+s.addNotification({
+type: "error",
+message: "Failed to create pod preset.",
+details: g(e)
+});
+});
+}, c.getState = function() {
+return c.podPreset && !c.binding ? "pending" : c.podPreset && c.binding ? "active" : c.binding ? f(c.binding) ? "active" : "pending" : c.serviceInstance && p(c.serviceInstance) ? "no-binding" : c.serviceInstance && !p(c.serviceInstance) ? "service_pending" : "no-service";
+}, c.deletePodPreset = function() {
+var e = {
+namespace: c.consumerService.metadata.namespace
+}, t = {
+propagationPolicy: null
+};
+i.delete(m, c.podPreset.metadata.name, e, t).then(function() {
+return i.get(l, _.get(c, "consumerService.metadata.labels.serviceName"), e);
+}).then(function(t) {
+var n = angular.copy(t);
+return delete n.spec.template.metadata.labels[v], i.update(l, _.get(c, "consumerService.metadata.labels.serviceName"), n, e);
+}).catch(function(e) {
+s.addNotification({
+type: "error",
+message: "There was an error deleting the integration.",
+details: g(e)
+});
+});
+};
+} ],
+bindings: {
+integration: "<",
+consumerService: "<?"
+},
+templateUrl: "views/directives/_service-integration.html"
+});
 }(), function() {
 angular.module("openshiftConsole").component("buildCounts", {
 controller: [ "$scope", "BuildsService", function(e, t) {
@@ -14217,9 +14382,6 @@ message: "Deployment #" + a + " is no longer the latest."
 }, l.urlForImageChangeTrigger = function(t) {
 var n = e("stripTag")(_.get(t, "imageChangeParams.from.name")), r = _.get(l, "apiObject.metadata.namespace"), a = _.get(t, "imageChangeParams.from.namespace", r);
 return s.resourceURL(n, "ImageStream", a);
-}, l.navigateToPods = function() {
-var e = l.getPods(l.current);
-_.isEmpty(e) || s.toPodsForDeployment(l.current, e);
 }, l.closeOverlayPanel = function() {
 _.set(l, "overlay.panelVisible", !1);
 }, l.showOverlayPanel = function(e, t) {
@@ -14238,39 +14400,42 @@ templateUrl: "views/overview/_list-row.html"
 });
 }(), function() {
 angular.module("openshiftConsole").component("serviceInstanceRow", {
-controller: [ "$filter", "APIService", "AuthorizationService", "BindingService", "ListRowUtils", "ServiceInstancesService", function(e, t, n, r, a, o) {
-var i = this, s = e("isBindingFailed"), c = e("isBindingReady"), l = e("serviceInstanceFailedMessage"), u = e("truncate");
-_.extend(i, a.ui);
-var d = e("serviceInstanceDisplayName");
-i.serviceBindingsVersion = t.getPreferredVersion("servicebindings"), i.serviceInstancesVersion = t.getPreferredVersion("serviceinstances");
-var m = function() {
-var e = o.getServiceClassNameForInstance(i.apiObject);
-return _.get(i, [ "state", "serviceClasses", e ]);
-}, p = function() {
-var e = o.getServicePlanNameForInstance(i.apiObject);
-return _.get(i, [ "state", "servicePlans", e ]);
+controller: [ "$filter", "$rootScope", "APIService", "AuthorizationService", "BindingService", "ListRowUtils", "ServiceInstancesService", function(e, t, n, r, a, o, i) {
+var s = this, c = e("isBindingFailed"), l = e("isBindingReady"), u = e("serviceInstanceFailedMessage"), d = e("truncate");
+_.extend(s, o.ui);
+var m = e("serviceInstanceDisplayName");
+s.serviceBindingsVersion = n.getPreferredVersion("servicebindings"), s.serviceInstancesVersion = n.getPreferredVersion("serviceinstances"), s.isMobileService = e("isMobileService");
+var p = function() {
+var e = i.getServiceClassNameForInstance(s.apiObject);
+return _.get(s, [ "state", "serviceClasses", e ]);
 }, f = function() {
-_.get(i.apiObject, "metadata.deletionTimestamp") ? i.instanceStatus = "deleted" : s(i.apiObject) ? i.instanceStatus = "failed" : c(i.apiObject) ? i.instanceStatus = "ready" : i.instanceStatus = "pending";
+var e = i.getServicePlanNameForInstance(s.apiObject);
+return _.get(s, [ "state", "servicePlans", e ]);
+}, g = function() {
+_.get(s.apiObject, "metadata.deletionTimestamp") ? s.instanceStatus = "deleted" : c(s.apiObject) ? s.instanceStatus = "failed" : l(s.apiObject) ? s.instanceStatus = "ready" : s.instanceStatus = "pending";
 };
-i.$doCheck = function() {
-f(), i.notifications = a.getNotifications(i.apiObject, i.state), i.serviceClass = m(), i.servicePlan = p(), i.displayName = d(i.apiObject, i.serviceClass), i.isBindable = r.isServiceBindable(i.apiObject, i.serviceClass, i.servicePlan);
-}, i.$onChanges = function(e) {
-e.bindings && (i.deleteableBindings = _.reject(i.bindings, "metadata.deletionTimestamp"));
-}, i.getSecretForBinding = function(e) {
-return e && _.get(i, [ "state", "secrets", e.spec.secretName ]);
-}, i.actionsDropdownVisible = function() {
-return !(_.get(i.apiObject, "metadata.deletionTimestamp") || (!i.isBindable || !n.canI(i.serviceBindingsVersion, "create")) && (_.isEmpty(i.deleteableBindings) || !n.canI(i.serviceBindingsVersion, "delete")) && !n.canI(i.serviceInstancesVersion, "delete"));
-}, i.closeOverlayPanel = function() {
-_.set(i, "overlay.panelVisible", !1);
-}, i.showOverlayPanel = function(e, t) {
-_.set(i, "overlay.panelVisible", !0), _.set(i, "overlay.panelName", e), _.set(i, "overlay.state", t);
-}, i.getFailedTooltipText = function() {
-var e = l(i.apiObject);
+s.$doCheck = function() {
+g(), s.notifications = o.getNotifications(s.apiObject, s.state), s.serviceClass = p(), s.servicePlan = f(), s.displayName = m(s.apiObject, s.serviceClass), s.isBindable = a.isServiceBindable(s.apiObject, s.serviceClass, s.servicePlan);
+}, s.$onChanges = function(e) {
+if (e.bindings && (s.deleteableBindings = _.reject(s.bindings, "metadata.deletionTimestamp")), s.isMobileService(s.apiObject) && t.AEROGEAR_MOBILE_ENABLED) {
+var n = p(), r = _.get(n, "spec.externalMetadata.integrations");
+r && (s.integrations = r.split(","));
+}
+}, s.getSecretForBinding = function(e) {
+return e && _.get(s, [ "state", "secrets", e.spec.secretName ]);
+}, s.actionsDropdownVisible = function() {
+return !(_.get(s.apiObject, "metadata.deletionTimestamp") || (!s.isBindable || !r.canI(s.serviceBindingsVersion, "create")) && (_.isEmpty(s.deleteableBindings) || !r.canI(s.serviceBindingsVersion, "delete")) && !r.canI(s.serviceInstancesVersion, "delete"));
+}, s.closeOverlayPanel = function() {
+_.set(s, "overlay.panelVisible", !1);
+}, s.showOverlayPanel = function(e, t) {
+_.set(s, "overlay.panelVisible", !0), _.set(s, "overlay.panelName", e), _.set(s, "overlay.state", t);
+}, s.getFailedTooltipText = function() {
+var e = u(s.apiObject);
 if (!e) return "";
-var t = u(e, 128);
+var t = d(e, 128);
 return e.length !== t.length && (t += "..."), t;
-}, i.deprovision = function() {
-o.deprovision(i.apiObject, i.deleteableBindings);
+}, s.deprovision = function() {
+i.deprovision(s.apiObject, s.deleteableBindings);
 };
 } ],
 controllerAs: "row",
@@ -15913,6 +16078,10 @@ return _.startCase(e).replace("Back Off", "Back-off").replace("O Auth", "OAuth")
 };
 }).filter("humanizePodStatus", [ "humanizeReasonFilter", function(e) {
 return e;
+} ]).filter("donutURL", [ "navigateResourceURLFilter", function(e) {
+return function(t, n) {
+return 1 === _.size(n) ? e(_.sample(n)) : _.size(n) > 1 ? e(t) : void 0;
+};
 } ]), angular.module("openshiftConsole").filter("canIDoAny", [ "APIService", "canIFilter", function(e, t) {
 var n = {
 buildConfigs: [ {
@@ -16321,7 +16490,15 @@ return window.encodeURIComponent;
 return function(t) {
 return _.get(e, [ "ENABLE_TECH_PREVIEW_FEATURE", t ], !1);
 };
-} ]), angular.module("openshiftConsole").factory("logLinks", [ "$anchorScroll", "$document", "$location", "$window", function(e, t, n, r) {
+} ]).filter("isNonPrintable", function() {
+return function(e) {
+return !!e && /[\x00-\x09\x0E-\x1F]/.test(e);
+};
+}), angular.module("openshiftConsole").filter("isMobileService", function() {
+return function(e) {
+return "enabled" === _.get(e, "metadata.labels.mobile", {});
+};
+}), angular.module("openshiftConsole").factory("logLinks", [ "$anchorScroll", "$document", "$location", "$window", function(e, t, n, r) {
 var a = _.template([ "/#/discover?", "_g=(", "time:(", "from:now-1w,", "mode:relative,", "to:now", ")", ")", "&_a=(", "columns:!(kubernetes.container_name,message),", "index:'<%= index %>',", "query:(", "query_string:(", "analyze_wildcard:!t,", 'query:\'kubernetes.pod_name:"<%= podname %>" AND kubernetes.namespace_name:"<%= namespace %>"\'', ")", "),", "sort:!('@timestamp',desc)", ")", "#console_container_name=<%= containername %>", "&console_back_url=<%= backlink %>" ].join(""));
 return {
 scrollTop: function(e) {
