@@ -5,7 +5,7 @@
     <img class="image-icon pull-left" ng-src="{{ $ctrl.integration.spec.externalMetadata.imageUrl }}">
     <div class="description pull-left" ng-switch="$ctrl.getState()">
       <h4 class="integration-name">{{$ctrl.integration.spec.externalMetadata.displayName || "Service Integration"}}</h4>
-      <span class="integration-error" ng-if="$ctrl.getState() == 'pending' || $ctrl.getState() == 'service_pending'"><span class="spinner spinner-xs spinner-inline" aria-hidden="true"></span></span>
+      <span class="integration-error" ng-if="$ctrl.getState() == 'pending' || $ctrl.getState() == 'service-provision-pending' || $ctrl.getState() == 'service-deprovision-pending'"><span class="spinner spinner-xs spinner-inline" aria-hidden="true"></span></span>
       <delete-link
         class="inline-delete"
         ng-if="$ctrl.getState() == 'active'"
@@ -22,7 +22,8 @@
       <div class="id" ng-switch-when="no-binding">No {{$ctrl.integration.spec.externalMetadata.displayName}} integration found. 
         <span ng-click="$ctrl.openIntegrationPanel()" class="integrate-link">Integrate {{$ctrl.integration.spec.externalMetadata.displayName}}</span>
       </div>
-      <div class="id" ng-switch-when="service_pending">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} provision to complete.</div>
+      <div class="id" ng-switch-when="service-provision-pending">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} provision to complete.</div>
+      <div class="id" ng-switch-when="service-deprovision-pending">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} deprovision to complete.</div>
       <div class="id" ng-switch-when="no-service">
         <span ng-click="$ctrl.provision()">Provision {{$ctrl.integration.spec.externalMetadata.displayName}} to enable integration.</span>
       </div>

@@ -5705,7 +5705,7 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<img class=\"image-icon pull-left\" ng-src=\"{{ $ctrl.integration.spec.externalMetadata.imageUrl }}\">\n" +
     "<div class=\"description pull-left\" ng-switch=\"$ctrl.getState()\">\n" +
     "<h4 class=\"integration-name\">{{$ctrl.integration.spec.externalMetadata.displayName || \"Service Integration\"}}</h4>\n" +
-    "<span class=\"integration-error\" ng-if=\"$ctrl.getState() == 'pending' || $ctrl.getState() == 'service_pending'\"><span class=\"spinner spinner-xs spinner-inline\" aria-hidden=\"true\"></span></span>\n" +
+    "<span class=\"integration-error\" ng-if=\"$ctrl.getState() == 'pending' || $ctrl.getState() == 'service-provision-pending' || $ctrl.getState() == 'service-deprovision-pending'\"><span class=\"spinner spinner-xs spinner-inline\" aria-hidden=\"true\"></span></span>\n" +
     "<delete-link class=\"inline-delete\" ng-if=\"$ctrl.getState() == 'active'\" kind=\"servicebinding\" group=\"servicecatalog.k8s.io\" button-only=\"true\" stay-on-current-page=\"true\" resource-name=\"{{$ctrl.binding.metadata.name}}\" project-name=\"{{$ctrl.binding.metadata.namespace}}\" success=\"$ctrl.deletePodPreset\">\n" +
     "</delete-link>\n" +
     "<div class=\"id\" ng-switch-when=\"pending\">Status: Pending</div>\n" +
@@ -5713,7 +5713,8 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "<div class=\"id\" ng-switch-when=\"no-binding\">No {{$ctrl.integration.spec.externalMetadata.displayName}} integration found.\n" +
     "<span ng-click=\"$ctrl.openIntegrationPanel()\" class=\"integrate-link\">Integrate {{$ctrl.integration.spec.externalMetadata.displayName}}</span>\n" +
     "</div>\n" +
-    "<div class=\"id\" ng-switch-when=\"service_pending\">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} provision to complete.</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"service-provision-pending\">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} provision to complete.</div>\n" +
+    "<div class=\"id\" ng-switch-when=\"service-deprovision-pending\">Waiting for {{$ctrl.integration.spec.externalMetadata.displayName}} deprovision to complete.</div>\n" +
     "<div class=\"id\" ng-switch-when=\"no-service\">\n" +
     "<span ng-click=\"$ctrl.provision()\">Provision {{$ctrl.integration.spec.externalMetadata.displayName}} to enable integration.</span>\n" +
     "</div>\n" +

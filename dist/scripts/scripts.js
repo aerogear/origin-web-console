@@ -14044,7 +14044,7 @@ details: g(e)
 });
 });
 }, c.getState = function() {
-return c.podPreset && !c.binding ? "pending" : c.podPreset && c.binding ? "active" : c.binding && !c.podPreset ? "pending" : t.serviceInstance && p(t.serviceInstance) ? "no-binding" : t.serviceInstance && !p(t.serviceInstance) ? "service_pending" : "no-service";
+return c.podPreset && !c.binding ? "pending" : c.podPreset && c.binding ? "active" : c.binding && !c.podPreset ? "pending" : t.serviceInstance && p(t.serviceInstance) ? "no-binding" : t.serviceInstance && !p(t.serviceInstance) && "Provision" === _.get(t, "serviceInstance.status.currentOperation") ? "service-provision-pending" : t.serviceInstance && !p(t.serviceInstance) && "Deprovision" === _.get(t, "serviceInstance.status.currentOperation") ? "service-deprovision-pending" : "no-service";
 }, c.deletePodPreset = function() {
 var e = {
 namespace: c.consumerService.metadata.namespace

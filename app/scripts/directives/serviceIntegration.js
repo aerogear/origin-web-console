@@ -229,8 +229,11 @@
       if ($scope.serviceInstance && isServiceInstanceReady($scope.serviceInstance)) {
         return "no-binding";
       } 
-      if ($scope.serviceInstance && !isServiceInstanceReady($scope.serviceInstance)) {
-        return "service_pending";
+      if ($scope.serviceInstance && !isServiceInstanceReady($scope.serviceInstance) && _.get($scope, 'serviceInstance.status.currentOperation') === 'Provision') {
+        return "service-provision-pending";
+      }
+      if ($scope.serviceInstance && !isServiceInstanceReady($scope.serviceInstance) && _.get($scope, 'serviceInstance.status.currentOperation') === 'Deprovision') {
+        return "service-deprovision-pending";
       }
       return "no-service";
     };
