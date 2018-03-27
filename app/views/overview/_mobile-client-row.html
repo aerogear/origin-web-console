@@ -37,18 +37,21 @@
   </div>
   <div class="list-pf-expansion collapse" ng-if="row.expanded" ng-class="{ in: row.expanded }">
     <div class="list-pf-container">
-      <div class="expanded-section">
-        <div class="empty-state-message text-center">
+      <div class="expanded-section row">
+        <div class="col-md-5">
+          <mobile-client-config mobile-client="row.apiObject"></mobile-client-config>
+        </div>
+        <div class="col-md-7">
+        </div>
+        <div class="col-md-12">
           <p>Add a mobile service to your project. Or connect to external service.</p>
           <div class="empty-state-message-main-action">
-            <!--TODO link through to the mobile category -->
-            <button class="btn btn-primary btn-lg" ng-click="row.browseCatalog()">
-              Browse Mobile Services
+            <button class="btn btn-primary btn-lg" ng-click="row.browseCatalog()">Browse Mobile Services
             </button>
           </div>
-        </div>
-        <div ng-if="loading">
-          Loading...
+          <div ng-if="loading">
+            Loading...
+          </div>
         </div>
       </div>
     </div>

@@ -10845,6 +10845,12 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
   );
 
 
+  $templateCache.put('views/mobile-client-config.html',
+    "<div class=\"component-label section-label\">Config Info</div>\n" +
+    "<copy-to-clipboard clipboard-text=\"$ctrl.prettyConfig\" multiline=\"true\" display-wide=\"true\"></copy-to-clipboard>"
+  );
+
+
   $templateCache.put('views/modals/about-compute-units-modal.html',
     "<div class=\"about-compute-units-modal\">\n" +
     "<div class=\"modal-header\">\n" +
@@ -12658,18 +12664,21 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
     "</div>\n" +
     "<div class=\"list-pf-expansion collapse\" ng-if=\"row.expanded\" ng-class=\"{ in: row.expanded }\">\n" +
     "<div class=\"list-pf-container\">\n" +
-    "<div class=\"expanded-section\">\n" +
-    "<div class=\"empty-state-message text-center\">\n" +
+    "<div class=\"expanded-section row\">\n" +
+    "<div class=\"col-md-5\">\n" +
+    "<mobile-client-config mobile-client=\"row.apiObject\"></mobile-client-config>\n" +
+    "</div>\n" +
+    "<div class=\"col-md-7\">\n" +
+    "</div>\n" +
+    "<div class=\"col-md-12\">\n" +
     "<p>Add a mobile service to your project. Or connect to external service.</p>\n" +
     "<div class=\"empty-state-message-main-action\">\n" +
-    "\n" +
-    "<button class=\"btn btn-primary btn-lg\" ng-click=\"row.browseCatalog()\">\n" +
-    "Browse Mobile Services\n" +
+    "<button class=\"btn btn-primary btn-lg\" ng-click=\"row.browseCatalog()\">Browse Mobile Services\n" +
     "</button>\n" +
-    "</div>\n" +
     "</div>\n" +
     "<div ng-if=\"loading\">\n" +
     "Loading...\n" +
+    "</div>\n" +
     "</div>\n" +
     "</div>\n" +
     "</div>\n" +
