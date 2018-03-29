@@ -4,6 +4,7 @@
 angular.module('openshiftConsole').component('mobileClientConfig', {
     bindings: {
       mobileClient: '<',
+      projectName: '<'
     },
     templateUrl: 'views/mobile-client-config.html',
     controller: [
@@ -49,9 +50,9 @@ function MobileClientConfigCtrl(APIService, DataService, API_CFG) {
   var ctrl = this;
   var watches = [];
   ctrl.$onInit = function(){
-    var context = {namespace: _.get(ctrl, 'mobileClient.metadata.namespace')};
+    var context = {namespace: ctrl.projectName};
     //keep list of active services upto date
-    DataService.watch(
+    watches.push(DataService.watch(
       APIService.getPreferredVersion('serviceinstances'), 
       context, 
       function (serviceinstances){
@@ -59,7 +60,7 @@ function MobileClientConfigCtrl(APIService, DataService, API_CFG) {
         DataService.list(APIService.getPreferredVersion('configmaps'), context, updateClientConfig, {errorNotification: false});
       }, 
       { errorNotification: false }
-    );
+    ));
     watches.push(DataService.watch(APIService.getPreferredVersion('configmaps'), context, updateClientConfig, {errorNotification: false}));
 
     // update the config string by pulling out configmaps that match ctrl.services
