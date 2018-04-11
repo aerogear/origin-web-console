@@ -118,6 +118,13 @@
                             </catalog-parameters>
                           </form>
                         </div>
+                        <div ng-if="(serviceIntegrations | size) && (serviceInstance | isServiceInstanceReady)">
+                          <h3>Service Integrations</h3>
+                          <service-instance-integrations
+                            integrations="serviceIntegrations"
+                            consumer-service="serviceInstance">
+                          </service-instance-integrations>
+                        </div>
                       </div>
                       <div class="col-lg-6">
                         <div class="hidden-xs hidden-sm hidden-md">

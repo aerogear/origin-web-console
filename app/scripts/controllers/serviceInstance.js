@@ -3,6 +3,7 @@
 angular.module('openshiftConsole')
   .controller('ServiceInstanceController', function ($scope,
                                                      $filter,
+                                                     $rootScope,
                                                      $routeParams,
                                                      APIService,
                                                      BindingService,
@@ -19,6 +20,8 @@ angular.module('openshiftConsole')
     $scope.serviceClass = null;
     $scope.serviceClasses = null;
     $scope.editDialogShown = false;
+    $scope.isMobileService = $filter('isMobileService');
+    $scope.isMobileEnabled = $rootScope.AEROGEAR_MOBILE_ENABLED;
 
     $scope.breadcrumbs = [
       {
@@ -182,6 +185,15 @@ angular.module('openshiftConsole')
       }
     };
 
+    var updateServiceIntegrations = function() {
+      if ($scope.isMobileEnabled && $scope.isMobileService($scope.serviceInstance)) {
+        ServiceInstancesService.fetchServiceClassForInstance($scope.serviceInstance).then(function(serviceClass) {
+          var integrations = _.get(serviceClass, "spec.externalMetadata.integrations", []);
+          $scope.serviceIntegrations = integrations.split(",");
+        });
+      }
+    };
+
     var serviceResolved = function(serviceInstance, action) {
       $scope.loaded = true;
       $scope.serviceInstance = serviceInstance;
@@ -196,6 +208,7 @@ angular.module('openshiftConsole')
       updateServiceClass();
       updateParameterData();
       updateEditable();
+      updateServiceIntegrations();
     };
 
     ProjectsService
