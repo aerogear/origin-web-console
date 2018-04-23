@@ -145,9 +145,23 @@
                           service-class="serviceClass"
                           service-plan="plan">
                         </service-instance-bindings>
+                        <div ng-if="isMobileEnabled && hasMobileClients && isMobileService && (serviceInstance | isServiceInstanceReady)">
+                          <h3>Mobile Clients</h3>
+                          <mobile-service-clients
+                            mobile-clients="mobileClients"
+                            service-instance="serviceInstance"
+                            project="project"></mobile-service-clients>
+                        </div>
                       </div>
                     </div>
                     <annotations annotations="serviceInstance.metadata.annotations"></annotations>
+                    <div ng-if="(integrations | size) && (serviceInstance | isServiceInstanceReady)" class="service-instance-bindings">
+                      <h3 >Mobile Service Bindings</h3>
+                      <mobile-service-bindings
+                        integrations="integrations"
+                        consumer-service="serviceInstance">
+                      </mobile-service-bindings>
+                    </div>
                   </div>
                 </uib-tab>
                 <uib-tab active="selectedTab.events" ng-if="eventsVersion | canI : 'watch'">
