@@ -33,38 +33,53 @@
     var isBindingReady = $filter('isBindingReady');
     var watches = [];
 
-    ctrl.$onInit = function() {
-      var context = {namespace: _.get(ctrl, 'consumerInstance.metadata.namespace')};
+    ctrl.$onChanges = function(changes) {
+      if (changes.consumerInstance && changes.consumerInstance.currentValue &&
+          changes.integrationServiceClass && changes.integrationServiceClass.currentValue &&
+          !ctrl.watchesSet) {
+        var context = {namespace: _.get(ctrl, 'consumerInstance.metadata.namespace')};
 
-      watches.push(DataService.watch(instancePreferredVersion, context, function(serviceInstancesData) {
-        var data = serviceInstancesData.by('metadata.name');
-        ctrl.integrationServiceInstance = _.find(data, function(serviceInstance) {
-          var clusterServiceClassExternalName = _.get(serviceInstance, 'spec.clusterServiceClassExternalName');
-          return (clusterServiceClassExternalName === ctrl.integrationServiceClass.spec.externalName);
+        DataService.list(instancePreferredVersion, context, function(serviceInstancesData) {
+          var data = serviceInstancesData.by('metadata.name');
+          ctrl.checkIntegrationInstance(data);
+
+          watches.push(DataService.watch(bindingPreferredVersion, context, function(bindingData) {
+            ctrl.watchesSet = true;
+            var data = bindingData.by('metadata.name');
+
+            ctrl.binding = _.find(data, function(binding) {
+              var bindingProviderName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/provider']);
+              var bindingConsumerName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/consumer']);
+              var consumerInstanceName = _.get(ctrl, 'consumerInstance.metadata.name');
+              var integrationServiceInstanceName = _.get(ctrl, 'integrationServiceInstance.metadata.name');
+              return (bindingProviderName && bindingConsumerName && consumerInstanceName && bindingProviderName === integrationServiceInstanceName && bindingConsumerName === consumerInstanceName);
+            });
+            ctrl.checkBinding();
+          }));
         });
 
-        ctrl.integrationInstanceProvisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Provision';
-        ctrl.integrationInstanceDeprovisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Deprovision';
+        watches.push(DataService.watch(instancePreferredVersion, context, function(serviceInstancesData) {
+          var data = serviceInstancesData.by('metadata.name');
+          ctrl.checkIntegrationInstance(data);
+        }));
+      }
+    };
 
-        ctrl.bindingMeta = {
-          annotations: {
-            'integrations.aerogear.org/consumer': _.get(ctrl, 'consumerInstance.metadata.name'),
-            'integrations.aerogear.org/provider': _.get(ctrl, 'integrationServiceInstance.metadata.name')
-          }
-        };
-      }));
-
-      DataService.watch(bindingPreferredVersion, context, function(bindingData) {
-        var data = bindingData.by('metadata.name');
-        ctrl.binding = _.find(data, function(binding) {
-          var bindingProviderName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/provider']);
-          var bindingConsumerName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/consumer']);
-          var consumerInstanceName = _.get(ctrl, 'consumerInstance.metadata.name');
-          var integrationServiceInstanceName = _.get(ctrl, 'integrationServiceInstance.metadata.name');
-          return (bindingProviderName && bindingConsumerName && consumerInstanceName && bindingProviderName === integrationServiceInstanceName && bindingConsumerName === consumerInstanceName);
-        });
-        ctrl.checkBinding();
+    ctrl.checkIntegrationInstance = function(serviceInstances) {
+      ctrl.integrationServiceInstance = _.find(serviceInstances, function(serviceInstance) {
+        var clusterServiceClassExternalName = _.get(serviceInstance, 'spec.clusterServiceClassExternalName');
+        return (clusterServiceClassExternalName === ctrl.integrationServiceClass.spec.externalName);
       });
+
+      ctrl.integrationInstanceProvisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Provision';
+      ctrl.integrationInstanceDeprovisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Deprovision';
+
+      ctrl.bindingMeta = {
+        annotations: {
+          'integrations.aerogear.org/consumer': _.get(ctrl, 'consumerInstance.metadata.name'),
+          'integrations.aerogear.org/provider': _.get(ctrl, 'integrationServiceInstance.metadata.name')
+        }
+      };
     };
 
     ctrl.checkBinding = function() {

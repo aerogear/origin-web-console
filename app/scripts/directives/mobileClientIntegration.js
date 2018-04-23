@@ -21,5 +21,11 @@
         CLIENT_NAME: _.get(ctrl.mobileClient, 'metadata.name')
       };
     };
+
+    ctrl.$onChanges = function(changes) {
+      if (changes.mobileClient && changes.mobileClient.currentValue) {
+        ctrl.consumerInstance = ctrl.mobileClient;
+      }
+    };
   }
 })();
