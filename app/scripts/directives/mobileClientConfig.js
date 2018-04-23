@@ -3,8 +3,7 @@
 
 angular.module('openshiftConsole').component('mobileClientConfig', {
     bindings: {
-      mobileClient: '<',
-      projectName: '<'
+      mobileClient: '<'
     },
     templateUrl: 'views/mobile-client-config.html',
     controller: [
@@ -26,11 +25,11 @@ var getClientConfig = function(mobileClient, serviceConfig, clusterInfo) {
   }, null, '  ');
 };
 
-var getServiceConfig = function(services, SecretsService) {
-  return _.map(services, function(service) {
-    var decodedData = SecretsService.decodeSecretData(service.data);
+var getServiceConfig = function(secrets, SecretsService) {
+  return _.map(secrets, function(secret) {
+    var decodedData = SecretsService.decodeSecretData(secret.data);
     return {
-      id: _.get(service, 'metadata.name'),
+      id: _.get(secret, 'metadata.name'),
       name: _.get(decodedData, 'name'),
       type: decodedData.type,
       url: decodedData.uri,
@@ -42,22 +41,21 @@ var getServiceConfig = function(services, SecretsService) {
 function MobileClientConfigCtrl(API_CFG, APIService, DataService, SecretsService) {
   var ctrl = this;
   var watches = [];
-  ctrl.$onInit = function() {
-    var context = {namespace: ctrl.projectName};
-
-    watches.push(DataService.watch(APIService.getPreferredVersion('secrets'), context, updateClientSecret, {errorNotification: false}));
-    function updateClientSecret(secrets) {
-      ctrl.secrets = _.filter(secrets.by("metadata.name"), function(secret) {
-        return _.get(secret, 'metadata.labels.clientId') === ctrl.mobileClient.metadata.name;
-      });
-
-      ctrl.serviceConfig = getServiceConfig(ctrl.secrets, SecretsService);
-      ctrl.prettyConfig = getClientConfig(ctrl.mobileClient, ctrl.serviceConfig, API_CFG);
-    }
-  };
 
   ctrl.$onChanges = function(changes) {
-    if (changes.mobileClient && ctrl.services) {
+    if (changes.mobileClient && changes.mobileClient.currentValue && !ctrl.secretWatch) {
+      ctrl.secretWatch = DataService.watch(APIService.getPreferredVersion('secrets'), {namespace: _.get(ctrl, 'mobileClient.metadata.namespace')},
+        function(secrets) {
+        ctrl.secrets = _.filter(secrets.by('metadata.name'), function(secret) {
+          return _.get(secret, 'metadata.labels.clientId') === ctrl.mobileClient.metadata.name;
+        });
+
+        ctrl.serviceConfig = getServiceConfig(ctrl.secrets, SecretsService);
+        ctrl.prettyConfig = getClientConfig(ctrl.mobileClient, ctrl.serviceConfig, API_CFG);
+      }, {errorNotification: false});
+      watches.push(ctrl.secretWatch);
+    }
+    if (changes.mobileClient && ctrl.secrets) {
       ctrl.serviceConfig = getServiceConfig(ctrl.secrets, SecretsService);
       ctrl.prettyConfig = getClientConfig(ctrl.mobileClient, ctrl.serviceConfig, API_CFG);
     }
