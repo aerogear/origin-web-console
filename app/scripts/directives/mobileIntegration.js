@@ -83,7 +83,8 @@
     };
 
     ctrl.checkBinding = function() {
-      if (ctrl.binding && ctrl.binding.status.currentOperation === 'Bind') {
+      var currentOperation = _.get(ctrl, 'binding.status.currentOperation', '').toLowerCase();
+      if (ctrl.binding && currentOperation === 'bind') {
         ctrl.hasBinding = false;
         ctrl.isBindPending = true;
       }
@@ -95,7 +96,7 @@
         ctrl.hasBinding = false;
         ctrl.isBindPending = false;
       }
-      if (ctrl.binding && ctrl.binding.status.currentOperation === 'Unbind') {
+      if (ctrl.binding && currentOperation === 'unbind') {
         ctrl.hasBinding = false;
         ctrl.isBindPending = true;
       }
