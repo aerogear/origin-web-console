@@ -1,0 +1,8 @@
+<div ng-if="($ctrl.clientProviders | size)" class="row mobile-bindings">
+  <div class="component-label section-label">Mobile client bindings</div>
+  <mobile-client-binding
+    ng-repeat="provider in $ctrl.clientProviders"
+    provider="provider"
+    mobile-client="$ctrl.mobileClient">
+  </mobile-client-binding>
+</div>
