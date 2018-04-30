@@ -1,22 +1,22 @@
 'use strict';
 
 (function() {
-  angular.module('openshiftConsole').component('mobileServiceIntegration', {
+  angular.module('openshiftConsole').component('mobileServiceBinding', {
     controller: [
       '$filter',
       'APIService',
       'DataService',
       'NotificationsService',
-      MobileServiceIntegration
+      MobileServiceBinding
     ],
     bindings: {
-      integration: '<',
+      provider: '<',
       consumerService: '<?'
     },
-    templateUrl: 'views/directives/mobile-integrations.html'
+    templateUrl: 'views/directives/mobile-bindings.html'
   });
 
-  function MobileServiceIntegration(
+  function MobileServiceBinding(
     $filter,
     APIService,
     DataService,
@@ -52,7 +52,7 @@
         });
         ctrl.consumerServiceName = _.get(ctrl.consumerSecret, 'metadata.labels.serviceName');
         ctrl.parameterData = {
-          CLIENT_NAME: ctrl.consumerServiceName
+          CLIENT_ID: ctrl.consumerServiceName
         };
       }));
 
@@ -60,7 +60,7 @@
         var data = serviceInstancesData.by('metadata.name');
         ctrl.providerServiceInstance = _.find(data, function(serviceInstance) {
           var clusterServiceClassExternalName = _.get(serviceInstance, 'spec.clusterServiceClassExternalName');
-          return (clusterServiceClassExternalName === ctrl.integration.spec.externalName);
+          return (clusterServiceClassExternalName === ctrl.provider.spec.externalName);
         });
       }));
 
@@ -145,13 +145,13 @@
           .then(function() {
             NotificationsService.addNotification({
               type: 'success',
-              message: 'Integration has been created for ' + ctrl.consumerServiceName + ' and it is being redeployed.'
+              message: 'Binding has been created for ' + ctrl.consumerServiceName + ' and it is being redeployed.'
             });
           })
           .catch(function(err) {
             NotificationsService.addNotification({
               type: 'error',
-              message: 'Failed to integrate service binding.',
+              message: 'Failed to create service binding.',
               details: err.data.message
             });
           });
@@ -175,13 +175,13 @@
       .then(function() {
         NotificationsService.addNotification({
           type: 'success',
-          message: 'Integration has been deleted for ' + ctrl.consumerServiceName + ' and it is being redeployed.'
+          message: 'Binding has been deleted for ' + ctrl.consumerServiceName + ' and it is being redeployed.'
         });
       })
       .catch(function(error) {
         NotificationsService.addNotification({
           type: 'error',
-          message: 'There was an error deleting the integration.',
+          message: 'There was an error deleting the binding.',
           details: getErrorDetails(error)
         });
       });

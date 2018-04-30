@@ -1,26 +1,26 @@
 'use strict';
 
 (function() {
-  angular.module('openshiftConsole').component('mobileIntegration', {
+  angular.module('openshiftConsole').component('mobileBinding', {
     controller: [
       '$filter',
       '$scope',
       'APIService',
       'Catalog',
       'DataService',
-      MobileIntegration
+      MobileBinding
     ],
     bindings: {
-      integrationServiceClass: '<',
+      providerServiceClass: '<',
       onCreate: '<',
       onDelete: '<',
       consumerInstance: '<',
       parameterData: '<'
     },
-    templateUrl: 'views/directives/mobile-integration.html'
+    templateUrl: 'views/directives/mobile-binding.html'
   });
 
-  function MobileIntegration(
+  function MobileBinding(
     $filter,
     $scope,
     APIService,
@@ -35,24 +35,24 @@
 
     ctrl.$onChanges = function(changes) {
       if (changes.consumerInstance && changes.consumerInstance.currentValue &&
-          changes.integrationServiceClass && changes.integrationServiceClass.currentValue &&
+          changes.providerServiceClass && changes.providerServiceClass.currentValue &&
           !ctrl.watchesSet) {
         var context = {namespace: _.get(ctrl, 'consumerInstance.metadata.namespace')};
 
         DataService.list(instancePreferredVersion, context, function(serviceInstancesData) {
           var data = serviceInstancesData.by('metadata.name');
-          ctrl.checkIntegrationInstance(data);
+          ctrl.checkProviderInstance(data);
 
           watches.push(DataService.watch(bindingPreferredVersion, context, function(bindingData) {
             ctrl.watchesSet = true;
             var data = bindingData.by('metadata.name');
 
             ctrl.binding = _.find(data, function(binding) {
-              var bindingProviderName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/provider']);
-              var bindingConsumerName = _.get(binding, ['metadata', 'annotations', 'integrations.aerogear.org/consumer']);
+              var bindingProviderName = _.get(binding, ['metadata', 'annotations', 'binding.aerogear.org/provider']);
+              var bindingConsumerName = _.get(binding, ['metadata', 'annotations', 'binding.aerogear.org/consumer']);
               var consumerInstanceName = _.get(ctrl, 'consumerInstance.metadata.name');
-              var integrationServiceInstanceName = _.get(ctrl, 'integrationServiceInstance.metadata.name');
-              return (bindingProviderName && bindingConsumerName && consumerInstanceName && bindingProviderName === integrationServiceInstanceName && bindingConsumerName === consumerInstanceName);
+              var providerServiceInstanceName = _.get(ctrl, 'providerServiceInstance.metadata.name');
+              return (bindingProviderName && bindingConsumerName && consumerInstanceName && bindingProviderName === providerServiceInstanceName && bindingConsumerName === consumerInstanceName);
             });
             ctrl.checkBinding();
           }));
@@ -60,24 +60,24 @@
 
         watches.push(DataService.watch(instancePreferredVersion, context, function(serviceInstancesData) {
           var data = serviceInstancesData.by('metadata.name');
-          ctrl.checkIntegrationInstance(data);
+          ctrl.checkProviderInstance(data);
         }));
       }
     };
 
-    ctrl.checkIntegrationInstance = function(serviceInstances) {
-      ctrl.integrationServiceInstance = _.find(serviceInstances, function(serviceInstance) {
+    ctrl.checkProviderInstance = function(serviceInstances) {
+      ctrl.providerServiceInstance = _.find(serviceInstances, function(serviceInstance) {
         var clusterServiceClassExternalName = _.get(serviceInstance, 'spec.clusterServiceClassExternalName');
-        return (clusterServiceClassExternalName === ctrl.integrationServiceClass.spec.externalName);
+        return (clusterServiceClassExternalName === ctrl.providerServiceClass.spec.externalName);
       });
 
-      ctrl.integrationInstanceProvisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Provision';
-      ctrl.integrationInstanceDeprovisioning = _.get(ctrl, 'integrationServiceInstance.status.currentOperation') === 'Deprovision';
+      ctrl.providerInstanceProvisioning = _.get(ctrl, 'providerServiceInstance.status.currentOperation') === 'Provision';
+      ctrl.providerInstanceDeprovisioning = _.get(ctrl, 'providerServiceInstance.status.currentOperation') === 'Deprovision';
 
       ctrl.bindingMeta = {
         annotations: {
-          'integrations.aerogear.org/consumer': _.get(ctrl, 'consumerInstance.metadata.name'),
-          'integrations.aerogear.org/provider': _.get(ctrl, 'integrationServiceInstance.metadata.name')
+          'binding.aerogear.org/consumer': _.get(ctrl, 'consumerInstance.metadata.name'),
+          'binding.aerogear.org/provider': _.get(ctrl, 'providerServiceInstance.metadata.name')
         }
       };
     };
@@ -102,18 +102,18 @@
       }
     };
 
-    ctrl.integrationPanelVisible = false;
+    ctrl.bindingPanelVisible = false;
 
-    ctrl.closeIntegrationPanel = function() {
-      ctrl.integrationPanelVisible = false;
+    ctrl.closeBindingPanel = function() {
+      ctrl.bindingPanelVisible = false;
     };
 
-    ctrl.openIntegrationPanel = function() {
-      ctrl.integrationPanelVisible = true;
+    ctrl.openBindingPanel = function() {
+      ctrl.bindingPanelVisible = true;
     };
 
     ctrl.provision = function() {
-      $scope.$emit('open-overlay-panel', Catalog.getServiceItem(ctrl.integrationServiceClass));
+      $scope.$emit('open-overlay-panel', Catalog.getServiceItem(ctrl.providerServiceClass));
     };
 
     ctrl.$onDestroy = function() {

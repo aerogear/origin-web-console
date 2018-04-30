@@ -1,26 +1,26 @@
 'use strict';
 
-angular.module('openshiftConsole').component('mobileServiceIntegrations', {
+angular.module('openshiftConsole').component('mobileServiceBindings', {
   controller: [
     'APIService',
     'DataService',
-    MobileServiceIntegrations
+    MobileServiceBindings
   ],
   bindings: {
     integrations: '<',
     consumerService: '<'
   },
-  templateUrl: 'views/directives/mobile-service-integrations.html'
+  templateUrl: 'views/directives/mobile-service-bindings.html'
 });
 
-function MobileServiceIntegrations(APIService, DataService) {
+function MobileServiceBindings(APIService, DataService) {
   var ctrl = this;
   
   var serviceClassesPreferredVersion = APIService.getPreferredVersion('clusterserviceclasses');
 
   DataService.list(serviceClassesPreferredVersion, {})
   .then(function(serviceClasses) {
-    ctrl.integrationsData = _.filter(serviceClasses.by('metadata.name'), function(serviceClass) {
+    ctrl.serviceProviders = _.filter(serviceClasses.by('metadata.name'), function(serviceClass) {
       var serviceClassName = _.get(serviceClass, 'spec.externalMetadata.serviceName');
       return ctrl.integrations.contains(serviceClassName);
     });

@@ -1,24 +1,24 @@
-.mobile-integrations {
+.mobile-bindings {
   .component-label.section-label {
     margin: 0 20px;
   }
 
-  .integrate-link{
+  .binding-link{
     color: #0088ce;
     cursor: pointer;
   }
 
-  .mobile-integration {
+  .mobile-binding {
     height: 40px;
     margin: 10px 20px 0 0;
-    .integration-icon {
-      padding-top: 5px;
+    .binding-icon {
       margin: 0 15px;
+      padding-top: 5px;
       width: 30px;
 
       &.icon {
-        font-size: 30px;
         color: @text-color;
+        font-size: 30px;
       }
     }
     .id {
@@ -29,25 +29,25 @@
       display: inline-block;
     }
 
-    .integration {
+    .provider {
       color: @link-color;
 
-      .integration-name {
+      .binding-name {
         display: inline;
       }
 
       //override delete-link default icon with the patternfly icon
       .description {
-        .integration-error {
+        .binding-error {
           vertical-align: middle;
         }
 
         .inline-delete {
           margin-left: 3px;
           .fa-trash-o {
-            font-family: "PatternFlyIcons-webfont";
-            color: @text-color;
             background-color: @body-bg;
+            color: @text-color;
+            font-family: "PatternFlyIcons-webfont";
             &:before {
               content: "\e611";
             }

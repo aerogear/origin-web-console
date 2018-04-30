@@ -1,24 +1,24 @@
 'use strict';
 
 (function() {
-  angular.module('openshiftConsole').component('mobileClientIntegration', {
+  angular.module('openshiftConsole').component('mobileClientBinding', {
     controller: [
-      MobileClientIntegration
+      MobileClientBinding
     ],
     bindings: {
-      integration: '<',
+      provider: '<',
       mobileClient: '<?'
     },
-    templateUrl: 'views/directives/mobile-integrations.html'
+    templateUrl: 'views/directives/mobile-bindings.html'
   });
 
-  function MobileClientIntegration() {
+  function MobileClientBinding() {
     var ctrl = this;
 
     ctrl.$onInit = function() {
       ctrl.consumerInstance = ctrl.mobileClient;
       ctrl.parameterData = {
-        CLIENT_NAME: _.get(ctrl.mobileClient, 'metadata.name')
+        CLIENT_ID: _.get(ctrl.mobileClient, 'metadata.name')
       };
     };
 
