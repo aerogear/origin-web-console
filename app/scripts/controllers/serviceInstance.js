@@ -4,6 +4,7 @@ angular.module('openshiftConsole')
   .controller('ServiceInstanceController', function ($scope,
                                                      $filter,
                                                      $routeParams,
+                                                     $rootScope,
                                                      APIService,
                                                      BindingService,
                                                      AuthorizationService,
@@ -19,6 +20,7 @@ angular.module('openshiftConsole')
     $scope.serviceClass = null;
     $scope.serviceClasses = null;
     $scope.editDialogShown = false;
+    $scope.isMobileEnabled = $rootScope.AEROGEAR_MOBILE_ENABLED;
 
     $scope.breadcrumbs = [
       {
@@ -173,6 +175,18 @@ angular.module('openshiftConsole')
       } else {
         serviceClassPromise = ServiceInstancesService.fetchServiceClassForInstance($scope.serviceInstance).then(function (serviceClass) {
           $scope.serviceClass = serviceClass;
+          $scope.isMobileService = $filter('isMobileService')(serviceClass);
+          if ($scope.isMobileEnabled && $scope.isMobileService) {
+            var integrations = _.get(serviceClass, 'spec.externalMetadata.integrations');
+            if (integrations) {
+              $scope.integrations = integrations.split(',');
+            }
+            var mobileclientVersion = {group: 'mobile.k8s.io', version: 'v1alpha1', resource: 'mobileclients'};
+            DataService.watch(mobileclientVersion, $scope.projectContext, function(clients) {
+              $scope.mobileClients = clients.by('metadata.name');
+              $scope.hasMobileClients = !_.isEmpty($scope.mobileClients);
+            });
+          }
           $scope.displayName = serviceInstanceDisplayName($scope.serviceInstance, $scope.serviceClass);
 
           updateBreadcrumbs();
