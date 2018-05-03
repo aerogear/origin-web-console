@@ -33,7 +33,7 @@ var getServiceConfig = function(secrets, SecretsService) {
       name: _.get(decodedData, 'name'),
       type: decodedData.type,
       url: decodedData.uri,
-      config: JSON.parse(decodedData.config)
+      config: decodedData.config ? JSON.parse(decodedData.config) : {}
     };
   });
 };
