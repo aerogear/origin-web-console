@@ -51,9 +51,6 @@
           return serviceInstanceID === _.get(ctrl, 'consumerService.spec.externalID');
         });
         ctrl.consumerServiceName = _.get(ctrl.consumerSecret, 'metadata.labels.serviceName');
-        ctrl.parameterData = {
-          CLIENT_ID: ctrl.consumerServiceName
-        };
       }));
 
       watches.push(DataService.watch(instancePreferredVersion, ctrl.context, function(serviceInstancesData) {

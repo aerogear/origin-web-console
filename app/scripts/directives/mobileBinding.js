@@ -30,21 +30,22 @@
     var ctrl = this;
     var instancePreferredVersion = APIService.getPreferredVersion('serviceinstances');
     var bindingPreferredVersion = APIService.getPreferredVersion('servicebindings');
+    var servicePlansVersion = APIService.getPreferredVersion('clusterserviceplans');
     var isBindingReady = $filter('isBindingReady');
     var watches = [];
 
     ctrl.$onChanges = function(changes) {
       if (changes.consumerInstance && changes.consumerInstance.currentValue &&
           changes.providerServiceClass && changes.providerServiceClass.currentValue &&
-          !ctrl.watchesSet) {
+          !ctrl.instancePromise) {
+
         var context = {namespace: _.get(ctrl, 'consumerInstance.metadata.namespace')};
 
-        DataService.list(instancePreferredVersion, context, function(serviceInstancesData) {
+        ctrl.instancePromise = DataService.list(instancePreferredVersion, context, function(serviceInstancesData) {
           var data = serviceInstancesData.by('metadata.name');
           ctrl.checkProviderInstance(data);
 
           watches.push(DataService.watch(bindingPreferredVersion, context, function(bindingData) {
-            ctrl.watchesSet = true;
             var data = bindingData.by('metadata.name');
 
             ctrl.binding = _.find(data, function(binding) {
@@ -62,6 +63,22 @@
           var data = serviceInstancesData.by('metadata.name');
           ctrl.checkProviderInstance(data);
         }));
+      }
+
+      if (changes.consumerInstance && changes.consumerInstance.currentValue &&
+          changes.providerServiceClass && changes.providerServiceClass.currentValue &&
+          !ctrl.servicePlanPromise) {
+
+        ctrl.servicePlanPromise = DataService.list(servicePlansVersion, {}, function(servicePlans) {
+          var servicePlanData = servicePlans.by('metadata.name');
+          ctrl.providerServicePlan = _.find(servicePlanData, function(plan) {
+            return ctrl.providerServiceClass.metadata.name === plan.spec.clusterServiceClassRef.name;
+          });
+          var kind = ctrl.consumerInstance.kind.toLowerCase();
+          var bindDataPath = 'providerServicePlan.spec.externalMetadata.' + kind + '_bind_parameters_data';
+          var bindData = _.get(ctrl, bindDataPath, []);
+          ctrl.bindData = _(bindData).map(JSON.parse).value();
+        });
       }
     };
 
@@ -109,6 +126,14 @@
     };
 
     ctrl.openBindingPanel = function() {
+      ctrl.parameterData = _.reduce(ctrl.bindData, function(acc, current) {
+        if (current.type === 'path') {
+          acc[current.name] = _.get(ctrl, 'consumerInstance.' + current.value);
+        } else if (current.type === 'default') {
+          acc[current.name] = current.value;
+        }
+        return acc;
+      },{});
       ctrl.bindingPanelVisible = true;
     };
 
