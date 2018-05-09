@@ -477,6 +477,7 @@ angular
   //   (?!\.\.(\/|$))        do not match strings starting with `../` or exactly `..`
   //   (?!.*\/\.\.(\/|$))    do not match strings containing `/../` or ending in `/..`
   .constant('RELATIVE_PATH_PATTERN', /^(?!\/)(?!\.\.(\/|$))(?!.*\/\.\.(\/|$)).*$/)
+  .constant('VALID_URL_PATTERN', /^(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/)
   // http://stackoverflow.com/questions/5899783/detect-safari-using-jquery
   .constant('IS_SAFARI', /Version\/[\d\.]+.*Safari/.test(navigator.userAgent))
   .constant('amTimeAgoConfig', {

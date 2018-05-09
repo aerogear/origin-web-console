@@ -13,10 +13,11 @@ angular.module('openshiftConsole')
     $routeParams,
     $scope,
     APIService,
-    Constants,
     DataService,
     Navigate,
-    ProjectsService
+    ProjectsService,
+    NotificationsService,
+    VALID_URL_PATTERN
   ) {
       var ctrl = this;
       var watches = [];
@@ -33,6 +34,20 @@ angular.module('openshiftConsole')
           title: $routeParams.mobileclient
         }
       ];
+      ctrl.validUrlPattern = VALID_URL_PATTERN;
+
+      ctrl.setDmzUrl = function(dmzUrl) {
+        var mobileClient = angular.copy(ctrl.mobileClient);
+        mobileClient.spec['dmzUrl'] = dmzUrl;
+
+        DataService.update(APIService.getPreferredVersion('mobileclients'), ctrl.mobileClient.metadata.name, mobileClient, ctrl.projectContext)
+        .then(function() {
+          NotificationsService.addNotification({
+            type: "success",
+            message: "Successfully updated the DMZ URL for " + ctrl.mobileClient.metadata.name 
+          });
+        });
+      };
 
       ProjectsService
         .get(ctrl.projectName)

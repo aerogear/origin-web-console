@@ -15,6 +15,9 @@
                data-toggle="dropdown"><i class="fa fa-ellipsis-v" aria-hidden="true"></i><span class="sr-only">Actions</span></a>
             <ul class="dropdown-menu dropdown-menu-right actions action-button">
               <li>
+                <a ng-href="{{ctrl.mobileClient | editYamlURL}}" role="button">Edit YAML</a>
+              </li>
+              <li>
                 <delete-link
                   kind="MobileClient"
                   group="mobile.k8s.io"
@@ -51,6 +54,16 @@
                     <dd>{{ctrl.mobileClient.spec.appIdentifier}}</dd>
                     <dt>Client API Key:</dt>
                     <dd>{{ctrl.mobileClient.spec.apiKey}}</dd>
+                    <dt>DMZ Url:</dt>
+                    <dd>
+                      <inline-edit
+                        pattern="ctrl.validUrlPattern"
+                        pattern-errmsg="'The value provided is not a valid url.'"
+                        label="'Set DMZ Url'"
+                        value="ctrl.mobileClient.spec.dmzUrl"
+                        on-edited="ctrl.setDmzUrl">
+                      </inline-edit>
+                    </dd>
                   </dl>
                   <annotations annotations="ctrl.mobileClient.metadata.annotations"></annotations>
                 </div>
