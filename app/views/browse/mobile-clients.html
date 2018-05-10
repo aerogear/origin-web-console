@@ -60,6 +60,14 @@
                 </div>
               </div>
             </uib-tab>
+            <uib-tab active="selectedTab.sdkSetup" ng-if="ctrl.mobileClient">
+              <uib-tab-heading>SDK setup</uib-tab-heading>
+              <div ng-switch="ctrl.mobileClient | mobileClientType">
+                <div ng-switch-when="iOS"><ng-include src="'views/mobile-client-sdk-config/sdk-config-ios.html'"></ng-include></div>
+                <div ng-switch-when="android"><ng-include src="'views/mobile-client-sdk-config/sdk-config-android.html'"></ng-include></div>
+                <div ng-switch-default><ng-include src="'views/mobile-client-sdk-config/sdk-config-default.html'"></ng-include></div>
+              </div>
+            </uib-tab>
           </uib-tabset>
         </div>
       </div>
