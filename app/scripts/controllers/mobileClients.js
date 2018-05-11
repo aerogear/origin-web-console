@@ -15,6 +15,7 @@ angular.module('openshiftConsole')
     APIService,
     Constants,
     DataService,
+    Navigate,
     ProjectsService
   ) {
       var ctrl = this;
@@ -22,11 +23,11 @@ angular.module('openshiftConsole')
       ctrl.projectName = $routeParams.project;
       ctrl.emptyMessage = 'Loading...';
       ctrl.alerts = {};
-      ctrl.redirectUrl = '/project/' + ctrl.projectName + '/overview';
-      ctrl.breadcrumbs = [
+      ctrl.redirectUrl = Navigate.projectOverviewURL(ctrl.projectName);
+      $scope.breadcrumbs = [
         {
           title: 'Mobile Clients',
-          link: 'project/' + ctrl.projectName + '/browse/mobile-clients'
+          link: ctrl.redirectUrl + '/browse/mobile-clients'
         },
         {
           title: $routeParams.mobileclient
@@ -41,14 +42,14 @@ angular.module('openshiftConsole')
 
           return $q.all([
             DataService.list(APIService.getPreferredVersion('clusterserviceclasses'), ctrl.projectContext),
-            DataService.get(Constants.MOBILE_CLIENT_VERSION, $routeParams.mobileclient, context, { errorNotification: false })
+            DataService.get(APIService.getPreferredVersion('mobileclients'), $routeParams.mobileclient, context, { errorNotification: false })
           ]).then(_.spread(function(serviceClasses, mobileClient) {
               ctrl.loaded = true;
 
               ctrl.serviceClasses = serviceClasses.by('metadata.name');
               ctrl.mobileClient = mobileClient;
 
-              watches.push(DataService.watchObject(Constants.MOBILE_CLIENT_VERSION, $routeParams.mobileclient, context, function(mobileClient, action) {
+              watches.push(DataService.watchObject(APIService.getPreferredVersion('mobileclients'), $routeParams.mobileclient, context, function(mobileClient, action) {
                 if (action === 'DELETED') {
                   ctrl.alerts['deleted'] = {
                     type: 'warning',
