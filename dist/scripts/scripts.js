@@ -1142,7 +1142,8 @@ templateUrl: "views/create-project.html",
 controller: "CreateProjectController"
 }).when("/project/:project/catalog", {
 templateUrl: "views/project-browse-catalog.html",
-controller: "ProjectBrowseCatalogController"
+controller: "ProjectBrowseCatalogController",
+reloadOnSearch: !1
 }).when("/project/:project", {
 redirectTo: function(e) {
 return "/project/" + encodeURIComponent(e.project) + "/overview";
@@ -1186,6 +1187,11 @@ isPipeline: [ "$route", function(e) {
 e.current.params.isPipeline = !0;
 } ]
 },
+reloadOnSearch: !1
+}).when("/project/:project/browse/mobile-clients/:mobileclient", {
+templateUrl: "views/browse/mobile-clients.html",
+controller: "MobileClientsController",
+controllerAs: "ctrl",
 reloadOnSearch: !1
 }).when("/project/:project/edit/yaml", {
 templateUrl: "views/edit/yaml.html",
@@ -1923,6 +1929,10 @@ break;
 case "ImageStreamTag":
 var m = s.indexOf(":");
 c.segment("images").segmentCoded(s.substring(0, m)).segmentCoded(s.substring(m + 1));
+break;
+
+case "MobileClient":
+c.segment("mobile-clients").segmentCoded(s);
 break;
 
 case "ServiceInstance":
@@ -5115,6 +5125,33 @@ pollInterval: 6e4
 a.unwatchAll(u);
 });
 }));
+} ]), angular.module("openshiftConsole").controller("MobileClientsController", [ "$filter", "$q", "$routeParams", "$scope", "APIService", "Constants", "DataService", "Navigate", "ProjectsService", function(e, t, n, r, a, o, i, s, c) {
+var l = this, u = [];
+l.projectName = n.project, l.emptyMessage = "Loading...", l.alerts = {}, l.redirectUrl = s.projectOverviewURL(l.projectName), r.breadcrumbs = [ {
+title: "Mobile Clients",
+link: l.redirectUrl + "/browse/mobile-clients"
+}, {
+title: n.mobileclient
+} ], c.get(l.projectName).then(_.spread(function(r, o) {
+return l.project = r, l.projectContext = o, t.all([ i.list(a.getPreferredVersion("clusterserviceclasses"), l.projectContext), i.get(a.getPreferredVersion("mobileclients"), n.mobileclient, o, {
+errorNotification: !1
+}) ]).then(_.spread(function(e, t) {
+l.loaded = !0, l.serviceClasses = e.by("metadata.name"), l.mobileClient = t, u.push(i.watchObject(a.getPreferredVersion("mobileclients"), n.mobileclient, o, function(e, t) {
+"DELETED" === t && (l.alerts.deleted = {
+type: "warning",
+message: "This mobile client has been deleted."
+}), l.mobileClient = e;
+}));
+}), function(t) {
+l.loaded = !0, l.alerts.load = {
+type: "error",
+message: 404 === t.status ? "This mobile client can not be found, it may have been deleted." : "The mobile client details could not be loaded.",
+details: e("getErrorDetails")(t)
+};
+});
+})), r.$on("$destroy", function() {
+i.unwatchAll(u);
+});
 } ]), angular.module("openshiftConsole").controller("MonitoringController", [ "$routeParams", "$location", "$scope", "$filter", "APIService", "BuildsService", "DataService", "ImageStreamResolver", "KeywordService", "Logger", "MetricsService", "Navigate", "PodsService", "ProjectsService", "$rootScope", function(e, t, n, r, a, o, i, s, c, l, u, d, m, p, f) {
 n.projectName = e.project, n.alerts = n.alerts || {}, n.renderOptions = n.renderOptions || {}, n.renderOptions.showEventsSidebar = !0, n.renderOptions.collapseEventsSidebar = "true" === localStorage.getItem("monitoring.eventsidebar.collapsed"), n.buildsLogVersion = a.getPreferredVersion("builds/log"), n.podsLogVersion = a.getPreferredVersion("pods/log"), n.deploymentConfigsLogVersion = a.getPreferredVersion("deploymentconfigs/log");
 var g = r("isIE")(), v = [];
@@ -14078,7 +14115,10 @@ resource: "mobileclients"
 }, l.actionsDropdownVisible = function() {
 return !_.get(l.apiObject, "metadata.deletionTimestamp") && a.canI(l.mobileclientVersion, "delete");
 }, l.projectName = n.project, l.browseCatalog = function() {
-s.toProjectCatalog(l.projectName);
+s.toProjectCatalog(l.projectName, {
+category: "mobile",
+subcategory: "services"
+});
 };
 } ],
 controllerAs: "row",

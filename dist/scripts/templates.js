@@ -2902,6 +2902,70 @@ angular.module('openshiftConsoleTemplates', []).run(['$templateCache', function(
   );
 
 
+  $templateCache.put('views/browse/mobile-clients.html',
+    "<div class=\"middle mobile-clients-view\">\n" +
+    "<div class=\"middle-header\">\n" +
+    "<div class=\"container-fluid\">\n" +
+    "<breadcrumbs breadcrumbs=\"breadcrumbs\"></breadcrumbs>\n" +
+    "<alerts alerts=\"alerts\"></alerts>\n" +
+    "<div>\n" +
+    "<h1 class=\"contains-actions\">\n" +
+    "<div class=\"pull-right dropdown\" ng-if=\"ctrl.mobileClient\">\n" +
+    "<button type=\"button\" class=\"dropdown-toggle btn btn-default actions-dropdown-btn hidden-xs\" data-toggle=\"dropdown\">\n" +
+    "Actions\n" +
+    "<span class=\"caret\" aria-hidden=\"true\"></span>\n" +
+    "</button>\n" +
+    "<a href=\"\" class=\"dropdown-toggle actions-dropdown-kebab visible-xs-inline\" data-toggle=\"dropdown\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i><span class=\"sr-only\">Actions</span></a>\n" +
+    "<ul class=\"dropdown-menu dropdown-menu-right actions action-button\">\n" +
+    "<li>\n" +
+    "<delete-link kind=\"MobileClient\" group=\"mobile.k8s.io\" resource-name=\"{{ctrl.mobileClient.metadata.name}}\" project-name=\"{{ctrl.mobileClient.metadata.namespace}}\" alerts=\"alerts\" redirect-url=\"{{ctrl.redirectUrl}}\">\n" +
+    "</delete-link>\n" +
+    "</li>\n" +
+    "</ul>\n" +
+    "</div>\n" +
+    "{{ctrl.mobileClient.spec.name}}\n" +
+    "<small class=\"meta\" ng-if=\"ctrl.mobileClient\">created <span am-time-ago=\"ctrl.mobileClient.metadata.creationTimestamp\"></span></small>\n" +
+    "</h1>\n" +
+    "<labels labels=\"ctrl.mobileClient.metadata.labels\" clickable=\"true\" kind=\"mobileClient\" project-name=\"{{ctrl.mobileClient.metadata.namespace}}\" limit=\"3\"></labels>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "<div class=\"middle-content\" persist-tab-state>\n" +
+    "<div class=\"container-fluid\">\n" +
+    "<div ng-if=\"!ctrl.loaded\">{{ctrl.emptyMessage}}</div>\n" +
+    "<div class=\"row\">\n" +
+    "<div class=\"col-md-12\" ng-class=\"{ 'hide-tabs' : !ctrl.mobileClient }\">\n" +
+    "<uib-tabset>\n" +
+    "<uib-tab active=\"selectedTab.configuration\">\n" +
+    "<uib-tab-heading>Configuration</uib-tab-heading>\n" +
+    "<div class=\"row\">\n" +
+    "<div class=\"resource-details col-md-6\">\n" +
+    "<h3>Mobile Client Details</h3>\n" +
+    "<dl class=\"dl-horizontal left\">\n" +
+    "<dt>Client Type:</dt>\n" +
+    "<dd>{{ctrl.mobileClient.spec.clientType}}</dd>\n" +
+    "<dt>Client ID:</dt>\n" +
+    "<dd>{{ctrl.mobileClient.spec.appIdentifier}}</dd>\n" +
+    "<dt>Client API Key:</dt>\n" +
+    "<dd>{{ctrl.mobileClient.spec.apiKey}}</dd>\n" +
+    "</dl>\n" +
+    "<annotations annotations=\"ctrl.mobileClient.metadata.annotations\"></annotations>\n" +
+    "</div>\n" +
+    "<div class=\"col-md-6 resource-details client-config\">\n" +
+    "<h3>Mobile Client Config</h3>\n" +
+    "<mobile-client-config mobile-client=\"ctrl.mobileClient\"></mobile-client-config>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</uib-tab>\n" +
+    "</uib-tabset>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>\n" +
+    "</div>"
+  );
+
+
   $templateCache.put('views/browse/persistent-volume-claim.html',
     "<div class=\"middle\">\n" +
     "<div class=\"middle-header\">\n" +
