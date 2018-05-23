@@ -49,7 +49,7 @@
         row.mobileClient = mobileClient;
 
         row.bindingMeta = {
-          generateName: _.get(row, 'mobileClient.metadata.name').toLowerCase() + '-' + _.get(row, 'serviceClass.spec.externalMetadata.displayName').toLowerCase() + '-',
+          generateName: _.get(row, 'mobileClient.metadata.name').toLowerCase().replace(/ /g, "-") + '-' + _.get(row, 'serviceClass.spec.externalMetadata.displayName').toLowerCase().replace(/ /g, "-") + '-',
           annotations: {
             'binding.aerogear.org/consumer': _.get(row, 'mobileClient.metadata.name'),
             'binding.aerogear.org/provider': _.get(row, 'apiObject.metadata.name')
