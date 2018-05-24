@@ -29,30 +29,10 @@
     var serviceBindingsVersion = APIService.getPreferredVersion('servicebindings');
     var isServiceInstanceReady = $filter('isServiceInstanceReady');
     var isMobileService = $filter('isMobileService');
+    var watches = [];
     row.installType = '';
 
     _.extend(row, ListRowUtils.ui);
-
-    row.$onInit = function() {
-      row.context = {namespace: _.get(row, 'apiObject.metadata.namespace')};
-      DataService.list(serviceClassesVersion, row.context, function(serviceClasses) {
-        serviceClasses = serviceClasses.by('metadata.name');
-        DataService.watch(serviceInstancesVersion, row.context, function(serviceinstances) {
-          row.services = _.filter(serviceinstances.by('metadata.name'), function(serviceInstance){
-            var serviceClass = _.get(serviceClasses, ServiceInstancesService.getServiceClassNameForInstance(serviceInstance));
-            return isMobileService(serviceClass) && isServiceInstanceReady(serviceInstance);
-          });
-          row.updateServicesInfo();
-        }, { errorNotification: false });
-      });
-
-      DataService.watch(serviceBindingsVersion, row.context, function(bindingsData) {
-        row.bindings = _.filter(bindingsData.by('metadata.name'), function(binding) {
-          return _.get(binding.metadata.annotations, 'binding.aerogear.org/consumer') === _.get(row, 'apiObject.metadata.name');
-        });
-        row.updateServicesInfo();
-      });
-    };
 
     row.navigateToMobileServices = function() {
       var resource = _.get(row, 'apiObject.metadata.name');
@@ -71,7 +51,8 @@
     };
 
     row.$onChanges = function(changes) {
-      if (changes.apiObject) {
+      var apiObjectChanges = changes.apiObject && changes.apiObject.currentValue;
+      if (apiObjectChanges) {
         row.bundleDisplay = row.apiObject.spec.appIdentifier;
         row.clientType = row.apiObject.spec.clientType.toUpperCase();
         switch (row.apiObject.spec.clientType) {
@@ -85,6 +66,34 @@
             row.installType = 'npm';
             break;
         }
+      }
+
+      if (apiObjectChanges && !row.context) {
+        row.context = {namespace: _.get(row, 'apiObject.metadata.namespace')};
+      }
+
+      if (apiObjectChanges && !row.serviceInstancesWatched) {
+        row.serviceInstancesWatched = true;
+        DataService.list(serviceClassesVersion, row.context, function(serviceClasses) {
+          serviceClasses = serviceClasses.by('metadata.name');
+          watches.push(DataService.watch(serviceInstancesVersion, row.context, function(serviceinstances) {
+            row.services = _.filter(serviceinstances.by('metadata.name'), function(serviceInstance){
+              var serviceClass = _.get(serviceClasses, ServiceInstancesService.getServiceClassNameForInstance(serviceInstance));
+              return isMobileService(serviceClass) && isServiceInstanceReady(serviceInstance);
+            });
+            row.updateServicesInfo();
+          }, { errorNotification: false }));
+        });
+      }
+
+      if (apiObjectChanges && !row.bindingsWatched) {
+        row.bindingsWatched = true;
+        watches.push(DataService.watch(serviceBindingsVersion, row.context, function(bindingsData) {
+          row.bindings = _.filter(bindingsData.by('metadata.name'), function(binding) {
+            return _.get(binding.metadata.annotations, 'binding.aerogear.org/consumer') === _.get(row, 'apiObject.metadata.name');
+          });
+          row.updateServicesInfo();
+        }));
       }
     };
 
@@ -107,5 +116,9 @@
     row.browseCatalog = function () {
       Navigate.toProjectCatalog(row.projectName, {category: 'mobile', subcategory: 'services'});
     };
+
+    row.$onDestroy = function() {
+      DataService.unwatchAll(watches);
+    }
   }
 })();
