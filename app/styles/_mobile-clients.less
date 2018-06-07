@@ -12,6 +12,15 @@
     }
   }
   .mobile-builds {
+
+    .mobile-build-detail {
+      padding-bottom: 20px;
+
+      b {
+        padding-right: 20px;
+      }
+    }
+
     .client-build-history {
       margin-top: 10px;
       
@@ -19,8 +28,29 @@
         .mobile-client-build-history-item {
           border: 1px solid @build-pipeline-border-color;
           box-sizing: border-box;
+          display: flex;
+          flex-wrap: wrap;
           padding: 10px;
           margin-bottom: -1px;
+
+          .status-panel {
+            align-items: center;
+            display: flex;
+          }
+
+          .build-link {
+            padding: 10px 0px 10px 10px;
+          }
+
+          .state {
+            display: flex;
+            flex-wrap: wrap;
+          }
+
+          .download-trigger {
+            align-items: center;
+            display: flex;
+          }
         }
       }
       .mobile-chevron {
@@ -155,5 +185,36 @@
   .services-chart {
     padding-bottom: 0.5em;
     width: 200px;
+  }
+}
+
+
+@media (max-width: 479px) {
+
+  .mobile-clients-view {
+    .mobile-builds {
+
+      .client-build-history  {
+
+        .build-history-list {
+          .download-trigger {
+            padding: 0;
+          }
+
+          .mobile-client-build-history-item {
+            .status-panel {
+              display: block;
+              padding: 0;
+
+              .state {
+                .info {
+                  padding-left: 0;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

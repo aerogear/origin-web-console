@@ -25,6 +25,12 @@
 
     ctrl.$onChanges = function(changes) {
       var mobileBuildChanges = changes.mobileBuild && changes.mobileBuild.currentValue;
+
+      if (mobileBuildChanges) {
+        var annotations = _.get(ctrl, 'mobileBuild.metadata.annotations', {});
+        ctrl.url = annotations[ctrl.BUILD_DOWNLOAD_ANNOTATION];
+      }
+
       if (mobileBuildChanges && !ctrl.context) {
         ctrl.context = {namespace:_.get(ctrl, 'mobileBuild.metadata.namespace')};
       }

@@ -34,6 +34,9 @@
           <span class="sr-only">Actions</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu role="menu">
+          <li ng-if="row.buildConfigsVersion | canI : 'update'">
+            <a ng-href="{{row.apiObject | editYamlURL}}" role="button">Edit YAML</a>
+          </li>
           <li role="menuitem" ng-if="row.buildConfigsVersion | canI : 'delete'">
             <delete-link
               resource-name="{{row.apiObject.metadata.name}}"
@@ -50,30 +53,30 @@
       <div class="expanded-section no-margin">
         <div class="component-label section-label">BUILD CONFIG</div>
         <div class="row">
-          <div class="col-md-2">
+          <div class="col-sm-6 col-md-2">
             <b>Repo Url</b>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-6 col-md-4">
             {{row.apiObject.spec.source.git.uri}}
           </div>
-          <div class="col-md-2">
+          <div class="col-sm-6 col-md-2">
             <b>Branch</b>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-6 col-md-4">
             {{row.apiObject.spec.source.git.ref}}
           </div>
         </div>
         <div class="row">
-          <div class="col-md-2">
-            <b>Jenkins Job Name</b>
+          <div class="col-sm-6 col-md-2">
+            <b>Build Platform</b>
           </div>
-          <div class="col-md-4">
-            {{row.apiObject.metadata.name}}
+          <div class="col-sm-6 col-md-4">
+            
           </div>
-          <div class="col-md-2">
+          <div class="col-sm-6 col-md-2">
             <b>Jenkinsfile Path</b>
           </div>
-          <div class="col-md-4">
+          <div class="col-sm-6 col-md-4">
             {{row.apiObject.spec.strategy.jenkinsPipelineStrategy.jenkinsfilePath}}
           </div>
         </div>
@@ -94,7 +97,7 @@
             <div class="no-builds-note" ng-if="!row.latestBuild">
               <h2> No Builds </h2>
               <p>
-                No builds have run for {{row.apiObject.metadata.name}}
+                No builds exist for {{row.apiObject.metadata.name}}
               </p>
               <button 
               class="btn btn-default" 
@@ -105,7 +108,7 @@
         </div>
         <div class="row client-build-history">
           <div class="col-md-12">
-            <div class="mobile-chevron">
+            <div ng-if="row.historyBuilds | size" class="mobile-chevron">
               <a href="" ng-click="row.toggleBuildHistory()" class="toggle-expand-link">
                 <span ng-if="row.historyExpanded">
                   <span class="fa fa-angle-down" aria-hidden="true"></span>
