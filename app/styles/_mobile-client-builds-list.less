@@ -30,6 +30,16 @@
           align-items: center;
           display: flex;
         }
+
+        .status-icon {
+          font-size: 13px;
+          &.Complete {
+            color: @build-pipeline-success-color;
+          }
+          &.Failed{
+            color: @build-pipeline-failed-color;
+          }
+        }
       }
     }
 
