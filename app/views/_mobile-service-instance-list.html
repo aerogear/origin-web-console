@@ -1,5 +1,4 @@
-
-<div class="overview" ng-if="(ctrl.serviceInstances | size)">
+<div class="overview mobile-service-instance-list" ng-if="(ctrl.serviceInstances | size)">
     <div class="list-pf">
         <mobile-service-instance-row
             ng-repeat="serviceInstance in ctrl.serviceInstances track by (serviceInstance | uid)"
